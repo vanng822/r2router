@@ -72,31 +72,29 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 	path = strings.TrimLeft(path, "/")
 	if path != "" {
 		paths := strings.Split(path, "/")
-		var parent *routeNode
-		if len(paths) > 0 {
-			parent = n.root
-			for _, p := range paths {
-				//fmt.Println(p)
-				child := newRouteNode()
+		parent := n.root
+		for _, p := range paths {
+			//fmt.Println(p)
+			child := newRouteNode()
 
-				if strings.Contains(p, ":") {
-					// param type
-					child.paramName = strings.TrimSpace(p[1:])
-					if child.paramName == "" {
-						panic("Param name can not be empty")
-					}
-					child.paramNode = true
-				} else {
-					child.path = p
+			if strings.Contains(p, ":") {
+				// param type
+				child.paramName = strings.TrimSpace(p[1:])
+				if child.paramName == "" {
+					panic("Param name can not be empty")
 				}
-				parent = parent.insertChild(child)
+				child.paramNode = true
+			} else {
+				child.path = p
 			}
-			// adding handler
-			if parent.handler != nil {
-				panic(fmt.Sprintf("'%s' has already a handler", path))
-			}
-			parent.handler = handler
+			parent = parent.insertChild(child)
 		}
+		// adding handler
+		if parent.handler != nil {
+			panic(fmt.Sprintf("'%s' has already a handler", path))
+		}
+		parent.handler = handler
+
 	} else {
 		if n.handler != nil {
 			panic("There is already a handler for /")
@@ -109,35 +107,34 @@ func (n *rootNode) match(path string) (Handler, Params) {
 	path = strings.TrimLeft(path, "/")
 	if path != "" {
 		paths := strings.Split(path, "/")
-		if len(paths) > 0 {
-			var matched bool
-			route := n.root
-			params := make(Params)
-			for _, p := range paths {
-				matched = false
-				//fmt.Println("p:", p)
-				for _, c := range route.children {
-					if c.path == p {
-						//fmt.Println("match:", c.path)
-						route = c
-						matched = true
-						break
-					}
-					if c.paramNode {
-						route = c
-						matched = true
-						params[c.paramName] = p
-						break
-					}
+		var matched bool
+		route := n.root
+		params := make(Params)
+		for _, p := range paths {
+			matched = false
+			//fmt.Println("p:", p)
+			for _, c := range route.children {
+				if c.path == p {
+					//fmt.Println("match:", c.path)
+					route = c
+					matched = true
+					break
 				}
-				if !matched {
+				if c.paramNode {
+					route = c
+					matched = true
+					params[c.paramName] = p
 					break
 				}
 			}
-			if matched {
-				return route.handler, params
+			if !matched {
+				break
 			}
 		}
+		if matched {
+			return route.handler, params
+		}
+
 	} else {
 		if n.handler != nil {
 			return n.handler, nil
