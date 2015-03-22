@@ -33,8 +33,8 @@ func NewRouter() *Router {
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	now := time.Now()
 	if root, exist := r.roots[req.Method]; exist {
-		found, handler, params := root.match(req.URL.Path)
-		if found {
+		handler, params := root.match(req.URL.Path)
+		if handler != nil {
 			handler(w, req, params)
 			log.Println(time.Now().Sub(now))
 			return

@@ -97,7 +97,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 	}
 }
 
-func (n *rootNode) match(path string) (bool, Handler, Params) {
+func (n *rootNode) match(path string) (Handler, Params) {
 	paths := strings.Split(strings.TrimLeft(path, "/"), "/")
 	if len(paths) > 0 {
 		var matched bool
@@ -125,13 +125,13 @@ func (n *rootNode) match(path string) (bool, Handler, Params) {
 			}
 		}
 		if matched {
-			return true, route.handler, params
+			return route.handler, params
 		}
 	} else if path == "/" {
 		if n.handler != nil {
-			return true, n.handler, nil
+			return n.handler, nil
 		}
 	}
 
-	return false, nil, nil
+	return nil, nil
 }
