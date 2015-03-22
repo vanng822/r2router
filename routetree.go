@@ -69,7 +69,7 @@ func newRouteTree() *rootNode {
 }
 
 func (n *rootNode) addRoute(path string, handler Handler) {
-	path = strings.TrimLeft(path, "/")
+	path = strings.Trim(path, "/")
 	if path != "" {
 		paths := strings.Split(path, "/")
 		parent := n.root
@@ -104,7 +104,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 }
 
 func (n *rootNode) match(path string) (Handler, Params) {
-	path = strings.TrimLeft(path, "/")
+	path = strings.Trim(path, "/")
 	if path != "" {
 		paths := strings.Split(path, "/")
 		var matched bool
