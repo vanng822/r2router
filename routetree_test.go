@@ -31,3 +31,10 @@ func TestSwapNodes(t *testing.T) {
 	assert.True(t, r.root.children[0].children[1].paramNode)
 	assert.Equal(t, r.root.children[0].children[1].paramName, "user")
 }
+
+func TestAddRouteBrokenParamName(t *testing.T) {
+	r := newRouteTree()
+	assert.Panics(t, func() {
+		r.addRoute("/users/:/following", httpTestHandler)
+	})
+}

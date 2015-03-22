@@ -81,7 +81,10 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 
 			if strings.Contains(p, ":") {
 				// param type
-				child.paramName = p[1:]
+				child.paramName = strings.TrimSpace(p[1:])
+				if child.paramName == "" {
+					panic("Param name can not be empty")
+				}
 				child.paramNode = true
 			} else {
 				child.path = p
