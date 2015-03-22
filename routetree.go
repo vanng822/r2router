@@ -72,7 +72,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 	// /group/:id/action
 	paths := strings.Split(strings.TrimLeft(path, "/"), "/")
 	var parent *routeNode
-	if len(paths) > 1 {
+	if len(paths) > 0 {
 		parent = n.root
 		for _, p := range paths {
 			//fmt.Println(p)
@@ -99,12 +99,13 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 
 func (n *rootNode) match(path string) (bool, Handler, Params) {
 	paths := strings.Split(strings.TrimLeft(path, "/"), "/")
-	if len(paths) > 1 {
+	if len(paths) > 0 {
 		var matched bool
 		route := n.root
 		params := make(Params)
 		for _, p := range paths {
 			matched = false
+			//fmt.Println("p:", p)
 			for _, c := range route.children {
 				if c.path == p {
 					//fmt.Println("match:", c.path)
