@@ -38,3 +38,12 @@ func TestAddRouteBrokenParamName(t *testing.T) {
 		r.addRoute("/users/:/following", httpTestHandler)
 	})
 }
+
+func TestAddRouteIndex(t *testing.T) {
+	r := newRouteTree()
+	r.addRoute("/", httpTestHandler)
+	assert.NotNil(t, r.handler)
+	assert.Panics(t, func() {
+		r.addRoute("/", httpTestHandler)
+	})
+}
