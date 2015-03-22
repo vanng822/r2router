@@ -1,7 +1,7 @@
 package r2router
 
 import (
-	//"fmt"
+	"fmt"
 	"strings"
 )
 
@@ -44,6 +44,7 @@ func (n *routeNode) insertChild(nn *routeNode) *routeNode {
 				panic("Param name must be same for")
 			}
 		}
+		
 		return child
 	}
 
@@ -88,6 +89,9 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 			parent = parent.insertChild(child)
 		}
 		// adding handler
+		if parent.handler != nil {
+			panic(fmt.Sprintf("'%s' has already a handler", path))
+		}
 		parent.handler = handler
 	} else if path == "/" {
 		if n.handler != nil {
