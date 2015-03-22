@@ -47,3 +47,30 @@ func TestAddRouteIndex(t *testing.T) {
 		r.addRoute("/", httpTestHandler)
 	})
 }
+
+func TestMatchTrue(t *testing.T) {
+	r := newRouteTree()
+	r.addRoute("/users/:user/events", httpTestHandler)
+	h, p := r.match("/users/vanng822/events")
+	assert.NotNil(t, h)
+	exectedP := make(Params)
+	exectedP["user"] = "vanng822"
+	assert.Equal(t, p, exectedP)
+}
+
+func TestMatchIndex(t *testing.T) {
+	r := newRouteTree()
+	r.addRoute("/", httpTestHandler)
+	h, p := r.match("/")
+	assert.NotNil(t, h)
+	assert.Nil(t, p)
+}
+
+func TestMatchFalse(t *testing.T) {
+	r := newRouteTree()
+	r.addRoute("/users/:user/events", httpTestHandler)
+	h, p := r.match("/users/:user/orgs")
+	assert.Nil(t, h)
+	assert.Nil(t, p)
+}
+

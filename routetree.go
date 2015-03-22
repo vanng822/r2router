@@ -74,7 +74,6 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 		paths := strings.Split(path, "/")
 		var parent *routeNode
 		if len(paths) > 0 {
-			fmt.Println(paths, len(paths))
 			parent = n.root
 			for _, p := range paths {
 				//fmt.Println(p)
