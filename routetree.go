@@ -50,8 +50,8 @@ func (n *routeNode) insertChild(nn *routeNode) *routeNode {
 
 	n.children = append(n.children, nn)
 	if len(n.children) > 1 {
-		if n.children[len(n.children)-1].paramNode {
-			n.swapChild(len(n.children)-1, len(n.children))
+		if n.children[len(n.children)-2].paramNode {
+			n.swapChild(len(n.children)-2, len(n.children)-1)
 		}
 	}
 	return nn
