@@ -49,17 +49,9 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-
+	
 	// if options find handler for different method
 	if req.Method == HTTP_METHOD_OPTIONS {
-		// look first if we have any option handler
-		if root, exist := r.roots[HTTP_METHOD_OPTIONS]; exist {
-			handler, params := root.match(req.URL.Path)
-			if handler != nil {
-				handler(w, req, params)
-				return
-			}
-		}
 		// build and serve options
 		availableMethods := make([]string, 0, len(r.roots))
 		for method := range r.roots {
