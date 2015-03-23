@@ -24,12 +24,17 @@ type Handler func(http.ResponseWriter, *http.Request, Params)
 
 type Router struct {
 	roots               map[string]*rootNode
+	
+	HandleMethodNotAllowed bool
+	
+	MethodNotAllowedHandler http.HandlerFunc
 }
 
 // NewRouter return a new Router
 func NewRouter() *Router {
 	r := &Router{}
 	r.roots = make(map[string]*rootNode)
+	r.HandleMethodNotAllowed = true
 	return r
 }
 
@@ -62,6 +67,22 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
+	}
+	
+	if r.HandleMethodNotAllowed {
+		for method := range r.roots {
+			if root, exist := r.roots[method]; exist {
+				handler, _ := root.match(req.URL.Path)
+				if handler != nil {
+					if r.MethodNotAllowedHandler != nil {
+						r.MethodNotAllowedHandler(w, req)
+					} else {
+						http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed) 
+					}
+					return
+				}
+			}
+		}	
 	}
 
 	http.NotFound(w, req)
