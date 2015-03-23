@@ -24,20 +24,12 @@ type Handler func(http.ResponseWriter, *http.Request, Params)
 
 type Router struct {
 	roots               map[string]*rootNode
-	optionsAllowMethods []string
 }
 
 // NewRouter return a new Router
 func NewRouter() *Router {
 	r := &Router{}
 	r.roots = make(map[string]*rootNode)
-	r.optionsAllowMethods = []string{
-		HTTP_METHOD_GET,
-		HTTP_METHOD_POST,
-		HTTP_METHOD_PUT,
-		HTTP_METHOD_DELETE,
-		HTTP_METHOD_HEAD,
-	}
 	return r
 }
 
@@ -55,8 +47,9 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// if options find handler for different method
 	if req.Method == HTTP_METHOD_OPTIONS {
-		availableMethods := make([]string, 0, len(r.optionsAllowMethods))
-		for _, method := range r.optionsAllowMethods {
+		availableMethods := make([]string, 0, len(r.roots))
+		
+		for method := range r.roots {
 			if root, exist := r.roots[method]; exist {
 				handler, _ := root.match(req.URL.Path)
 				if handler != nil {

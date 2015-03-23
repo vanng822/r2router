@@ -75,7 +75,9 @@ func TestRouter(t *testing.T) {
 	req, err = http.NewRequest("OPTIONS", ts.URL+"/user/keys/testing", nil)
 	res, err = client.Do(req)
 	res.Body.Close()
-	assert.Equal(t, res.Header.Get("Allow"), "GET, PUT, DELETE")
+	assert.Contains(t, res.Header.Get("Allow"), "GET")
+	assert.Contains(t, res.Header.Get("Allow"), "PUT")
+	assert.Contains(t, res.Header.Get("Allow"), "DELETE")
 }
 
 func TestRouterGroup(t *testing.T) {
