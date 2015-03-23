@@ -1,10 +1,10 @@
 package r2router
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"time"
-	"log"
 )
 
 const (
@@ -21,12 +21,20 @@ type Params map[string]string
 type Handler func(http.ResponseWriter, *http.Request, Params)
 
 type Router struct {
-	roots map[string]*rootNode
+	roots               map[string]*rootNode
+	optionsAllowMethods []string
 }
 
 func NewRouter() *Router {
 	r := &Router{}
 	r.roots = make(map[string]*rootNode)
+	r.optionsAllowMethods = []string{
+		HTTP_METHOD_GET,
+		HTTP_METHOD_POST,
+		HTTP_METHOD_PUT,
+		HTTP_METHOD_DELETE,
+		HTTP_METHOD_HEAD,
+	}
 	return r
 }
 
@@ -40,7 +48,25 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	
+
+	// if options find handler for different method
+	if req.Method == HTTP_METHOD_OPTIONS {
+		availableMethods := make([]string, 0, len(r.optionsAllowMethods))
+		for _, method := range r.optionsAllowMethods {
+			if root, exist := r.roots[method]; exist {
+				handler, _ := root.match(req.URL.Path)
+				if handler != nil {
+					availableMethods = append(availableMethods, method)
+				}
+			}
+		}
+		if len(availableMethods) > 0 {
+			w.Header().Add("Allow", strings.Join(availableMethods, ", "))
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+	}
+
 	http.NotFound(w, req)
 }
 
@@ -52,7 +78,10 @@ func (r *Router) Get(path string, handler Handler) {
 }
 
 func (r *Router) Head(path string, handler Handler) {
-	
+	if _, exists := r.roots[HTTP_METHOD_HEAD]; !exists {
+		r.roots[HTTP_METHOD_HEAD] = newRouteTree()
+	}
+	r.roots[HTTP_METHOD_HEAD].addRoute(path, handler)
 }
 
 func (r *Router) Post(path string, handler Handler) {
@@ -74,10 +103,6 @@ func (r *Router) Delete(path string, handler Handler) {
 		r.roots[HTTP_METHOD_DELETE] = newRouteTree()
 	}
 	r.roots[HTTP_METHOD_DELETE].addRoute(path, handler)
-}
-
-func (r *Router) Options(path string, handler Handler) {
-	
 }
 
 func (r *Router) Group(path string, fn func(r *GroupRouter)) {
@@ -119,8 +144,4 @@ func (gr *GroupRouter) Put(path string, handler Handler) {
 
 func (gr *GroupRouter) Delete(path string, handler Handler) {
 	gr.router.Delete(gr.buildPath(path), handler)
-}
-
-func (gr *GroupRouter) Options(path string, handler Handler) {
-	gr.router.Options(gr.buildPath(path), handler)
 }

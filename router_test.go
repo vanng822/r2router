@@ -2,7 +2,6 @@ package r2router
 
 import (
 	"github.com/stretchr/testify/assert"
-	//"github.com/julienschmidt/httprouter"
 	//"fmt"
 	"io/ioutil"
 	"net/http"
@@ -72,6 +71,11 @@ func TestRouter(t *testing.T) {
 	res.Body.Close()
 	assert.Equal(t, content, []byte("DELETE:/user/keys/:id,testing"))
 
+	// options
+	req, err = http.NewRequest("OPTIONS", ts.URL+"/user/keys/testing", nil)
+	res, err = client.Do(req)
+	res.Body.Close()
+	assert.Equal(t, res.Header.Get("Allow"), "GET, PUT, DELETE")
 }
 
 func TestRouterGroup(t *testing.T) {
