@@ -23,11 +23,10 @@ type Params map[string]string
 type Handler func(http.ResponseWriter, *http.Request, Params)
 
 type Router struct {
-	roots               map[string]*rootNode
-	
-	HandleMethodNotAllowed bool
-	
+	roots                   map[string]*rootNode
+	HandleMethodNotAllowed  bool
 	MethodNotAllowedHandler http.HandlerFunc
+	NotFound                http.HandlerFunc
 }
 
 // NewRouter return a new Router
@@ -49,7 +48,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	
+
 	// if options find handler for different method
 	if req.Method == HTTP_METHOD_OPTIONS {
 		// build and serve options
@@ -68,7 +67,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	
+
 	if r.HandleMethodNotAllowed {
 		for method := range r.roots {
 			if root, exist := r.roots[method]; exist {
@@ -77,15 +76,19 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 					if r.MethodNotAllowedHandler != nil {
 						r.MethodNotAllowedHandler(w, req)
 					} else {
-						http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed) 
+						http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 					}
 					return
 				}
 			}
-		}	
+		}
 	}
-
-	http.NotFound(w, req)
+	
+	if r.NotFound != nil {
+		r.NotFound(w, req)
+	} else {
+		http.NotFound(w, req)
+	}
 }
 
 func (r *Router) Get(path string, handler Handler) {
@@ -117,7 +120,7 @@ func (r *Router) AddHandler(method, path string, handler Handler) {
 
 // Group takes a path which typically a prefix for an endpoint
 // It will call callback function with a group router which
-// you can add handler for different request methods 
+// you can add handler for different request methods
 func (r *Router) Group(path string, fn func(r *GroupRouter)) {
 	gr := NewGroupRouter(r, path)
 	fn(gr)
@@ -130,6 +133,7 @@ type GroupRouter struct {
 	router *Router
 	path   string
 }
+
 // NewGroupRouter return GroupRouter which is a helper
 // to construct a group of endpoints, such example could
 // be API-version or different methods for an endpoint

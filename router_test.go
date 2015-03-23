@@ -212,3 +212,31 @@ func TestRouterCustomizedOptions(t *testing.T) {
 	res2.Body.Close()
 	assert.Equal(t, res2.Header.Get("Allow"), "GET, POST")
 }
+
+
+func TestRouterNotFound(t *testing.T) {
+	router := NewRouter()
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	res, err := http.Get(ts.URL + "/user/keys/testing")
+	assert.Nil(t, err)
+	res.Body.Close()
+	assert.Equal(t, res.StatusCode, http.StatusNotFound)
+}
+
+func TestRouterNotFoundCustomized(t *testing.T) {
+	router := NewRouter()
+	router.NotFound = func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Boo"))
+	}
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	
+	res, err := http.Get(ts.URL + "/user/keys/testing")
+	assert.Nil(t, err)
+	content, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Equal(t, res.StatusCode, http.StatusNotFound)
+	assert.Equal(t, content, []byte("Boo"))
+}
