@@ -98,6 +98,9 @@ func TestRouterGroup(t *testing.T) {
 		r.Get("/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 			w.Write([]byte("GET:/user/keys/:id," + p["id"]))
 		})
+		r.Head("/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
+			w.Write([]byte("HEAD:/user/keys/:id," + p["id"]))
+		})
 	})
 	ts := httptest.NewServer(router)
 	defer ts.Close()
@@ -143,6 +146,12 @@ func TestRouterGroup(t *testing.T) {
 	res.Body.Close()
 	assert.Equal(t, content, []byte("DELETE:/user/keys/:id,testing"))
 
+	req, err = http.NewRequest("HEAD", ts.URL+"/user/keys/testing", nil)
+	res, err = client.Do(req)
+	content, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	// http seems not sending content
+	assert.Equal(t, res.ContentLength, len([]byte("HEAD:/user/keys/:id,testing")))
 }
 
 
