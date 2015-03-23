@@ -52,8 +52,16 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// if options find handler for different method
 	if req.Method == HTTP_METHOD_OPTIONS {
+		// look first if we have any option handler
+		if root, exist := r.roots[HTTP_METHOD_OPTIONS]; exist {
+			handler, params := root.match(req.URL.Path)
+			if handler != nil {
+				handler(w, req, params)
+				return
+			}
+		}
+		// build and serve options
 		availableMethods := make([]string, 0, len(r.roots))
-		
 		for method := range r.roots {
 			if root, exist := r.roots[method]; exist {
 				handler, _ := root.match(req.URL.Path)
@@ -89,38 +97,30 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r *Router) Get(path string, handler Handler) {
-	if _, exists := r.roots[HTTP_METHOD_GET]; !exists {
-		r.roots[HTTP_METHOD_GET] = newRouteTree()
-	}
-	r.roots[HTTP_METHOD_GET].addRoute(path, handler)
+	r.AddHandler(HTTP_METHOD_GET, path, handler)
 }
 
 func (r *Router) Head(path string, handler Handler) {
-	if _, exists := r.roots[HTTP_METHOD_HEAD]; !exists {
-		r.roots[HTTP_METHOD_HEAD] = newRouteTree()
-	}
-	r.roots[HTTP_METHOD_HEAD].addRoute(path, handler)
+	r.AddHandler(HTTP_METHOD_HEAD, path, handler)
 }
 
 func (r *Router) Post(path string, handler Handler) {
-	if _, exists := r.roots[HTTP_METHOD_POST]; !exists {
-		r.roots[HTTP_METHOD_POST] = newRouteTree()
-	}
-	r.roots[HTTP_METHOD_POST].addRoute(path, handler)
+	r.AddHandler(HTTP_METHOD_POST, path, handler)
 }
 
 func (r *Router) Put(path string, handler Handler) {
-	if _, exists := r.roots[HTTP_METHOD_PUT]; !exists {
-		r.roots[HTTP_METHOD_PUT] = newRouteTree()
-	}
-	r.roots[HTTP_METHOD_PUT].addRoute(path, handler)
+	r.AddHandler(HTTP_METHOD_PUT, path, handler)
 }
 
 func (r *Router) Delete(path string, handler Handler) {
-	if _, exists := r.roots[HTTP_METHOD_DELETE]; !exists {
-		r.roots[HTTP_METHOD_DELETE] = newRouteTree()
+	r.AddHandler(HTTP_METHOD_DELETE, path, handler)
+}
+
+func (r *Router) AddHandler(method, path string, handler Handler) {
+	if _, exists := r.roots[method]; !exists {
+		r.roots[method] = newRouteTree()
 	}
-	r.roots[HTTP_METHOD_DELETE].addRoute(path, handler)
+	r.roots[method].addRoute(path, handler)
 }
 
 // Group takes a path which typically a prefix for an endpoint

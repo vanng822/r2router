@@ -26,6 +26,10 @@ func TestRouter(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p["id"]))
 	})
+	
+	router.AddHandler("OPTIONS", "/users/", func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Header().Add("Allow", "GET, POST")
+	})
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()
@@ -78,6 +82,11 @@ func TestRouter(t *testing.T) {
 	assert.Contains(t, res.Header.Get("Allow"), "GET")
 	assert.Contains(t, res.Header.Get("Allow"), "PUT")
 	assert.Contains(t, res.Header.Get("Allow"), "DELETE")
+	// custom
+	req, err = http.NewRequest("OPTIONS", ts.URL+"/users/", nil)
+	res, err = client.Do(req)
+	res.Body.Close()
+	assert.Equal(t, res.Header.Get("Allow"), "GET, POST")
 }
 
 func TestRouterGroup(t *testing.T) {
