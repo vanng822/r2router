@@ -19,6 +19,9 @@ func newRouteNode() *routeNode {
 	return r
 }
 
+// findChild finds a child node that matches the given node
+// It returns nil if no node found. This is to see if
+// we already have a similar node registered
 func (n *routeNode) findChild(nn *routeNode) *routeNode {
 	for _, c := range n.children {
 		if c.paramNode && nn.paramNode {
@@ -36,6 +39,10 @@ func (n *routeNode) swapChild(i, j int) {
 	n.children[i], n.children[j] = n.children[j], n.children[i]
 }
 
+// insertChild registers given node in the route node tree
+// If there is already a similar node it will not insert new node
+// The returned node is always the registered one ie either
+// newly registered or the old one
 func (n *routeNode) insertChild(nn *routeNode) *routeNode {
 	if child := n.findChild(nn); child != nil {
 		if child.paramNode && nn.paramNode {
@@ -72,6 +79,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 	path = strings.Trim(path, "/")
 	if path != "" {
 		paths := strings.Split(path, "/")
+		// Start with the roots
 		parent := n.root
 		for _, p := range paths {
 			//fmt.Println(p)
@@ -87,6 +95,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 			} else {
 				child.path = p
 			}
+			// will be parent for the next path token
 			parent = parent.insertChild(child)
 		}
 		// adding handler
@@ -106,6 +115,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 func (n *rootNode) match(path string) (Handler, Params) {
 	path = strings.Trim(path, "/")
 	if path != "" {
+		// can be better by getting one at the time
 		paths := strings.Split(path, "/")
 		var matched bool
 		route := n.root

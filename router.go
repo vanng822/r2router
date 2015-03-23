@@ -1,10 +1,10 @@
 package r2router
 
 import (
-	"log"
+	//"log"
 	"net/http"
 	"strings"
-	"time"
+	//"time"
 )
 
 const (
@@ -16,8 +16,10 @@ const (
 	HTTP_METHOD_PUT     = "PUT"
 )
 
+// Holding value for named parameters
 type Params map[string]string
 
+// Handler define interface handler
 type Handler func(http.ResponseWriter, *http.Request, Params)
 
 type Router struct {
@@ -25,6 +27,7 @@ type Router struct {
 	optionsAllowMethods []string
 }
 
+// NewRouter return a new Router
 func NewRouter() *Router {
 	r := &Router{}
 	r.roots = make(map[string]*rootNode)
@@ -38,13 +41,14 @@ func NewRouter() *Router {
 	return r
 }
 
+// http Handler Interface
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	now := time.Now()
+	//now := time.Now()
 	if root, exist := r.roots[req.Method]; exist {
 		handler, params := root.match(req.URL.Path)
 		if handler != nil {
 			handler(w, req, params)
-			log.Println(time.Now().Sub(now))
+			//log.Println(time.Now().Sub(now))
 			return
 		}
 	}
@@ -105,16 +109,25 @@ func (r *Router) Delete(path string, handler Handler) {
 	r.roots[HTTP_METHOD_DELETE].addRoute(path, handler)
 }
 
+// Group takes a path which typically a prefix for an endpoint
+// It will call callback function with a group router which
+// you can add handler for different request methods 
 func (r *Router) Group(path string, fn func(r *GroupRouter)) {
 	gr := NewGroupRouter(r, path)
 	fn(gr)
 }
 
+// GroupRouter is a helper for grouping endpoints
+// All methods are proxy of Router
+// Suitable for grouping different methods of an endpoint
 type GroupRouter struct {
 	router *Router
 	path   string
 }
-
+// NewGroupRouter return GroupRouter which is a helper
+// to construct a group of endpoints, such example could
+// be API-version or different methods for an endpoint
+// You should always use router.Group instead of using this directly
 func NewGroupRouter(r *Router, path string) *GroupRouter {
 	gr := &GroupRouter{}
 	gr.router = r
