@@ -179,7 +179,7 @@ func TestRouterMethodNotAllowed(t *testing.T) {
 
 func TestRouterMethodNotAllowedCustomized(t *testing.T) {
 	router := NewRouter()
-	router.MethodNotAllowedHandler = func(w http.ResponseWriter, r *http.Request) {
+	router.MethodNotAllowed = func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("Hello"))
 	}
