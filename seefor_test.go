@@ -129,3 +129,23 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, content, []byte("GET:/user/keys/:id,testingMiddlewareWorld"))
 }
+
+func TestSeeforMiddlewareWritten(t *testing.T) {
+	router := NewSeefor()
+
+	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Write([]byte("GET:/user/keys/:id," + p["id"] + p["middleware"] + p["hello"]))
+	})
+	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL + "/user/keys/testing")
+	assert.Nil(t, err)
+	res.Body.Close()
+	assert.Equal(t, res.StatusCode, http.StatusNotFound)
+}
