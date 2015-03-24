@@ -58,11 +58,11 @@ func (c4 *Seefor) handleMiddlewares(handler Handler, wr *ResponseWriter, req *ht
 	max := len(c4.middlewares) - 1
 	counter := -1
 	next = func() {
-		if counter >= max {
-			handler(wr, req, params)
+		if wr.Written() {
 			return
 		}
-		if wr.Written() {
+		if counter >= max {
+			handler(wr, req, params)
 			return
 		}
 		counter += 1
