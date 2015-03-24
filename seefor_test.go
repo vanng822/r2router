@@ -86,7 +86,7 @@ func TestSeeforMiddleware(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p["id"] +  p["middleware"]))
 	})
-	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.Use(func(w *ResponseWriter, r *http.Request, p Params, next func()) {
 		p["middleware"] = "Test Middleware"
 		next()
 	})
@@ -109,7 +109,7 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p["id"] + p["middleware"] + p["hello"]))
 	})
-	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.Use(func(w *ResponseWriter, r *http.Request, p Params, next func()) {
 		p["middleware"] = "Test Middleware"
 		p["hello"] = "World"
 		next()
@@ -136,7 +136,7 @@ func TestSeeforMiddlewareWritten(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p["id"] + p["middleware"] + p["hello"]))
 	})
-	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.Use(func(w *ResponseWriter, r *http.Request, p Params, next func()) {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
@@ -146,6 +146,8 @@ func TestSeeforMiddlewareWritten(t *testing.T) {
 
 	res, err := http.Get(ts.URL + "/user/keys/testing")
 	assert.Nil(t, err)
+	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusNotFound)
+	assert.Equal(t, content, []byte("GET:/user/keys/:id,testingMiddlewareWorld"))
 }
