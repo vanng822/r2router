@@ -1,11 +1,11 @@
 package r2router
 
 import (
-	"fmt"
+	//"fmt"
 	"net/http"
 )
 
-type Middleware func(*ResponseWriter, *http.Request, Params, func())
+type Middleware func(http.ResponseWriter, *http.Request, Params, func())
 
 type ResponseWriter struct {
 	status int
@@ -25,7 +25,6 @@ func (w *ResponseWriter) Write(content []byte) (int, error) {
 }
 
 func (w *ResponseWriter) Written() bool {
-	fmt.Println("SDF")
 	return w.status != 0
 }
 
@@ -81,7 +80,7 @@ func (c4 *Seefor) UseHandler(handler Handler) {
 }
 
 func (c4 *Seefor) Wrap(handler Handler) Middleware {
-	return func(w *ResponseWriter, req *http.Request, params Params, next func()) {
+	return func(w http.ResponseWriter, req *http.Request, params Params, next func()) {
 		handler(w, req, params)
 		next()
 	}
