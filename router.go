@@ -48,7 +48,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+	r.handleMissing(w, req)
+}
 
+func (r *Router) handleMissing(w http.ResponseWriter, req *http.Request) {
 	// if options find handler for different method
 	if req.Method == HTTP_METHOD_OPTIONS {
 		// build and serve options
