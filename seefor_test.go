@@ -10,7 +10,7 @@ import (
 )
 
 func TestSeeforInherits(t *testing.T) {
-	router := NewSeefor()
+	router := NewSeeforRouter()
 	router.Get("/user/keys/", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys"))
 	})
@@ -81,7 +81,7 @@ func TestSeeforInherits(t *testing.T) {
 }
 
 func TestSeeforMiddleware(t *testing.T) {
-	router := NewSeefor()
+	router := NewSeeforRouter()
 	
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p["id"] +  p["middleware"]))
@@ -104,7 +104,7 @@ func TestSeeforMiddleware(t *testing.T) {
 
 
 func TestSeeforMultiMiddleware(t *testing.T) {
-	router := NewSeefor()
+	router := NewSeeforRouter()
 
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p["id"] + p["middleware"] + p["hello"]))
@@ -131,7 +131,7 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 }
 
 func TestSeeforMiddlewareWritten(t *testing.T) {
-	router := NewSeefor()
+	router := NewSeeforRouter()
 
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p["id"] + p["middleware"] + p["hello"]))

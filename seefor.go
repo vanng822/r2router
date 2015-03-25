@@ -33,7 +33,7 @@ type Seefor struct {
 	middlewares []Middleware
 }
 
-func NewSeefor() *Seefor {
+func NewSeeforRouter() *Seefor {
 	c4 := &Seefor{}
 	c4.middlewares = make([]Middleware, 0)
 	c4.roots = make(map[string]*rootNode)
