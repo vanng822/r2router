@@ -20,6 +20,11 @@ func (p *params_) Get(key string) string {
 	return p.requestParams[key]
 }
 
+func (p *params_) Has(key string) bool {
+	_, exists := p.requestParams[key]
+	return exists
+}
+
 func (p *params_) AppSet(key string, val interface{}) {
 	p.appData[key] = val
 }
@@ -28,3 +33,7 @@ func (p *params_) AppGet(key string) interface{} {
 	return p.appData[key]
 }
 
+func (p *params_) AppHas(key string) bool {
+	_, exists := p.appData[key]
+	return exists
+}
