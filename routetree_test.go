@@ -53,8 +53,10 @@ func TestMatchTrue(t *testing.T) {
 	r.addRoute("/users/:user/events", httpTestHandler)
 	h, p := r.match("/users/vanng822/events")
 	assert.NotNil(t, h)
-	exectedP := make(Params)
-	exectedP["user"] = "vanng822"
+	exectedP := &params_{}
+	exectedP.appData = make(map[string]interface{})
+	exectedP.requestParams = make(map[string]string)
+	exectedP.requestParams["user"] = "vanng822"
 	assert.Equal(t, p, exectedP)
 }
 

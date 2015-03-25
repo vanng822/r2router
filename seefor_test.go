@@ -18,13 +18,13 @@ func TestSeeforInherits(t *testing.T) {
 		w.Write([]byte("POST:/user/keys"))
 	})
 	router.Put("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("PUT:/user/keys/:id," + p["id"]))
+		w.Write([]byte("PUT:/user/keys/:id," + p.Get("id")))
 	})
 	router.Delete("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("DELETE:/user/keys/:id," + p["id"]))
+		w.Write([]byte("DELETE:/user/keys/:id," + p.Get("id")))
 	})
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("GET:/user/keys/:id," + p["id"]))
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
 
 	ts := httptest.NewServer(router)
@@ -84,10 +84,10 @@ func TestSeeforMiddleware(t *testing.T) {
 	router := NewSeeforRouter()
 	
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("GET:/user/keys/:id," + p["id"] +  p["middleware"]))
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") +  p.AppGet("middleware").(string)))
 	})
 	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
-		p["middleware"] = "Test Middleware"
+		p.AppSet("middleware", "Test Middleware")
 		next()
 	})
 
@@ -107,16 +107,16 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 	router := NewSeeforRouter()
 
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("GET:/user/keys/:id," + p["id"] + p["middleware"] + p["hello"]))
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
 	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
-		p["middleware"] = "Test Middleware"
-		p["hello"] = "World"
+		p.AppSet("middleware",  "Test Middleware")
+		p.AppSet("hello", "World")
 		next()
 	})
 
 	router.UseHandler(func(w http.ResponseWriter, r *http.Request, p Params) {
-		p["middleware"] = "Middleware"
+		p.AppSet("middleware", "Middleware")
 	})
 
 	ts := httptest.NewServer(router)
@@ -134,14 +134,14 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	router := NewSeeforRouter()
 
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("GET:/user/keys/:id," + p["id"] + p["middleware"] + p["hello"]))
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
 	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		w.Write([]byte("Hello"))
 	})
 	
 	router.UseHandler(func(w http.ResponseWriter, r *http.Request, p Params) {
-		p["middleware"] = "Middleware"
+		p.AppSet("middleware", "Middleware")
 	})
 	
 	ts := httptest.NewServer(router)

@@ -18,13 +18,13 @@ func TestRouter(t *testing.T) {
 		w.Write([]byte("POST:/user/keys"))
 	})
 	router.Put("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("PUT:/user/keys/:id," + p["id"]))
+		w.Write([]byte("PUT:/user/keys/:id," + p.Get("id")))
 	})
 	router.Delete("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("DELETE:/user/keys/:id," + p["id"]))
+		w.Write([]byte("DELETE:/user/keys/:id," + p.Get("id")))
 	})
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("GET:/user/keys/:id," + p["id"]))
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
 	
 	ts := httptest.NewServer(router)
@@ -90,16 +90,16 @@ func TestRouterGroup(t *testing.T) {
 			w.Write([]byte("POST:/user/keys"))
 		})
 		r.Put("/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-			w.Write([]byte("PUT:/user/keys/:id," + p["id"]))
+			w.Write([]byte("PUT:/user/keys/:id," + p.Get("id")))
 		})
 		r.Delete("/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-			w.Write([]byte("DELETE:/user/keys/:id," + p["id"]))
+			w.Write([]byte("DELETE:/user/keys/:id," + p.Get("id")))
 		})
 		r.Get("/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-			w.Write([]byte("GET:/user/keys/:id," + p["id"]))
+			w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 		})
 		r.Head("/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-			w.Write([]byte("HEAD:/user/keys/:id," + p["id"]))
+			w.Write([]byte("HEAD:/user/keys/:id," + p.Get("id")))
 		})
 	})
 	ts := httptest.NewServer(router)
@@ -159,7 +159,7 @@ func TestRouterMethodNotAllowed(t *testing.T) {
 	router := NewRouter()
 	
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("GET:/user/keys/:id," + p["id"]))
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
 	
 	ts := httptest.NewServer(router)
@@ -184,7 +184,7 @@ func TestRouterMethodNotAllowedCustomized(t *testing.T) {
 		w.Write([]byte("Hello"))
 	}
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("GET:/user/keys/:id," + p["id"]))
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
 	
 	ts := httptest.NewServer(router)

@@ -119,7 +119,9 @@ func (n *rootNode) match(path string) (Handler, Params) {
 		paths := strings.Split(path, "/")
 		var matched bool
 		route := n.root
-		params := make(Params)
+		params := &params_{}
+		params.appData = make(map[string]interface{})
+		params.requestParams = make(map[string]string)
 		for _, p := range paths {
 			matched = false
 			//fmt.Println("p:", p)
@@ -133,7 +135,7 @@ func (n *rootNode) match(path string) (Handler, Params) {
 				if c.paramNode {
 					route = c
 					matched = true
-					params[c.paramName] = p
+					params.requestParams[c.paramName] = p
 					break
 				}
 			}

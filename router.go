@@ -16,9 +16,6 @@ const (
 	HTTP_METHOD_PUT     = "PUT"
 )
 
-// Holding value for named parameters
-type Params map[string]string
-
 // Handler define interface handler
 type Handler func(http.ResponseWriter, *http.Request, Params)
 
