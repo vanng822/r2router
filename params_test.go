@@ -13,7 +13,7 @@ func TestParamsAppData(t *testing.T) {
 	p := params_{}
 	p.appData = make(map[string]interface{})
 	p.appData["hello"] = "World"
-	p.appData["user"] = &User{"CPO", 56}
+	p.AppSet("user", &User{"CPO", 56})
 	
 	assert.True(t, p.AppHas("hello"))
 	assert.False(t, p.AppHas("world"))
