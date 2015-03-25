@@ -24,7 +24,11 @@ func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if root, exist := c4.roots[req.Method]; exist {
 		handler, params := root.match(req.URL.Path)
 		if handler != nil {
-			c4.handleMiddlewares(handler, w, req, params)
+			if len(c4.middlewares) > 0 {
+				c4.handleMiddlewares(handler, w, req, params)
+			} else {
+				handler(w, req, params)
+			}
 			return
 		}
 	}
