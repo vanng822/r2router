@@ -130,7 +130,7 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 	assert.Equal(t, content, []byte("GET:/user/keys/:id,testingMiddlewareWorld"))
 }
 
-func TestSeeforMiddlewareWritten(t *testing.T) {
+func TestSeeforMiddlewareStop(t *testing.T) {
 	router := NewSeeforRouter()
 
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
@@ -138,7 +138,6 @@ func TestSeeforMiddlewareWritten(t *testing.T) {
 	})
 	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		w.Write([]byte("Hello"))
-		next()
 	})
 	
 	router.UseHandler(func(w http.ResponseWriter, r *http.Request, p Params) {

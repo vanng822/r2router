@@ -5,28 +5,7 @@ import (
 	"net/http"
 )
 
-type Middleware func(http.ResponseWriter, *http.Request, Params, func())
-
-type ResponseWriter struct {
-	status int
-	http.ResponseWriter
-}
-
-func (w *ResponseWriter) WriteHeader(code int) {
-	w.status = code
-	w.ResponseWriter.WriteHeader(code)
-}
-
-func (w *ResponseWriter) Write(content []byte) (int, error) {
-	if !w.Written() {
-		w.WriteHeader(http.StatusOK)
-	}
-	return w.ResponseWriter.Write(content)
-}
-
-func (w *ResponseWriter) Written() bool {
-	return w.status != 0
-}
+type Middleware func(w http.ResponseWriter, req *http.Request, params Params, next func())
 
 type Seefor struct {
 	Router
@@ -45,28 +24,24 @@ func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if root, exist := c4.roots[req.Method]; exist {
 		handler, params := root.match(req.URL.Path)
 		if handler != nil {
-			wr := &ResponseWriter{0, w}
-			c4.handleMiddlewares(handler, wr, req, params)
+			c4.handleMiddlewares(handler, w, req, params)
 			return
 		}
 	}
 	c4.Router.handleMissing(w, req)
 }
 
-func (c4 *Seefor) handleMiddlewares(handler Handler, wr *ResponseWriter, req *http.Request, params Params) {
+func (c4 *Seefor) handleMiddlewares(handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
 	var next func()
 	max := len(c4.middlewares) - 1
 	counter := -1
 	next = func() {
-		if wr.Written() {
-			return
-		}
 		if counter >= max {
-			handler(wr, req, params)
+			handler(w, req, params)
 			return
 		}
 		counter += 1
-		c4.middlewares[counter](wr, req, params, next)
+		c4.middlewares[counter](w, req, params, next)
 	}
 	next()
 }
