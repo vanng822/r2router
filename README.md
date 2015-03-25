@@ -1,6 +1,9 @@
 ## r2router
 A simple router which supports named parameter
 
+[![GoDoc](https://godoc.org/github.com/vanng822/r2router?status.svg)](https://godoc.org/github.com/vanng822/r2router)
+
+
 ## Example
 
 ### Router
