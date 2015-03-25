@@ -11,7 +11,7 @@
 //	func main() {
 //		router := r2router.NewRouter()
 // 		router.Get("/users/:user", func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
-//			w.Write([]byte(p["user"]))
+//			w.Write([]byte(p.Get("user")))
 //		})
 //		http.ListenAndServe(":8080", router)
 //	}
