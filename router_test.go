@@ -175,3 +175,36 @@ func TestRouterNotFoundCustomized(t *testing.T) {
 	assert.Equal(t, res.StatusCode, http.StatusNotFound)
 	assert.Equal(t, content, []byte("Boo"))
 }
+
+
+func TestRouterFirstNodeParamNode(t *testing.T) {
+	router := NewRouter()
+	
+	router.Get("/:page", func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Write([]byte("GET:/:page," + p.Get("page")))
+	})
+	
+	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
+	})
+	
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	
+	client := &http.Client{}
+	
+	req, err := http.NewRequest("GET", ts.URL+"/testing", nil)
+	assert.Nil(t, err)
+	res, err := client.Do(req)
+	content, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Equal(t, content, []byte("GET:/:page,testing"))
+	
+	req, err = http.NewRequest("GET", ts.URL+"/user/keys/testing", nil)
+	assert.Nil(t, err)
+	res, err = client.Do(req)
+	content, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Equal(t, content, []byte("GET:/user/keys/:id,testing"))
+}
