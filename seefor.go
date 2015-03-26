@@ -24,11 +24,7 @@ func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if root, exist := c4.roots[req.Method]; exist {
 		handler, params := root.match(req.URL.Path)
 		if handler != nil {
-			if len(c4.middlewares) > 0 {
-				c4.handleMiddlewares(handler, w, req, params)
-			} else {
-				handler(w, req, params)
-			}
+			c4.handleMiddlewares(handler, w, req, params)
 			return
 		}
 	}
@@ -37,15 +33,22 @@ func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (c4 *Seefor) handleMiddlewares(handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
 	var next func()
-	max := len(c4.middlewares) - 1
-	counter := -1
+	
+	max := len(c4.middlewares)
+	if max == 0 {
+		handler(w, req, params)
+		return
+	}
+	
+	counter := 0
 	next = func() {
 		if counter >= max {
 			handler(w, req, params)
 			return
 		}
+		middleware := c4.middlewares[counter]
 		counter += 1
-		c4.middlewares[counter](w, req, params, next)
+		middleware(w, req, params, next)
 	}
 	next()
 }
