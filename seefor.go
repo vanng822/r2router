@@ -5,13 +5,23 @@ import (
 	"net/http"
 )
 
+// Middleware defines how a middle should look like.
+// Middlewares are executed in the order they were inserted.
+// A middleware can choose to response to a request and not call next
+// for continue with the next middleware/handler
 type Middleware func(w http.ResponseWriter, req *http.Request, params Params, next func())
 
+// Seefor is a subtype of Router.
+// It supports a simple middleware layers.
+// Middlewares are always executed before handler,
+// no matter where or when they are added.
+// And middlewares are executed in the order they were inserted.
 type Seefor struct {
 	Router
 	middlewares []Middleware
 }
 
+// NewSeeforRouter for creating a new instance of Seefor router
 func NewSeeforRouter() *Seefor {
 	c4 := &Seefor{}
 	c4.middlewares = make([]Middleware, 0)
@@ -19,7 +29,8 @@ func NewSeeforRouter() *Seefor {
 	c4.HandleMethodNotAllowed = true
 	return c4
 }
-
+// Implementing http handler interface.
+// This is a override of Router.ServeHTTP for handling middlewares
 func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if root, exist := c4.roots[req.Method]; exist {
 		handler, params := root.match(req.URL.Path)
@@ -53,14 +64,18 @@ func (c4 *Seefor) handleMiddlewares(handler Handler, w http.ResponseWriter, req 
 	next()
 }
 
+// Use is for adding middleware
 func (c4 *Seefor) Use(middleware ...Middleware) {
 	c4.middlewares = append(c4.middlewares, middleware...)
 }
 
+// UseHandler is for adding a Handler as middleware
+// it will first wrap handler to middleware and add it to the stack
 func (c4 *Seefor) UseHandler(handler Handler) {
 	c4.Use(c4.Wrap(handler))
 }
 
+// Wrap for wrapping a handler to middleware
 func (c4 *Seefor) Wrap(handler Handler) Middleware {
 	return func(w http.ResponseWriter, req *http.Request, params Params, next func()) {
 		handler(w, req, params)

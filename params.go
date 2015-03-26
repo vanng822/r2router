@@ -4,10 +4,23 @@ import (
 
 )
 
+// Params is for parameters that are matched from URL.
+// It is also brigde to forward data from middleware.
+// An Example could be that a middleware to identify
+// the user API key, verify and get user data
 type Params interface {
+	// Get returns param value for the given key
 	Get(key string) string
+	// Has is for checking if parameter value exists
+	// for given key
+	Has(key string) bool
+	// AppSet is for application to set own data
 	AppSet(key string, val interface{})
+	// AppGet returns the value from AppSet
 	AppGet(key string) interface{}
+	// AppHas is for checking if the application
+	// has set data for given key
+	AppHas(key string) bool
 }
 
 // Holding value for named parameters
