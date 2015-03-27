@@ -140,13 +140,10 @@ func (n *rootNode) match(path string) (Handler, Params) {
 				}
 			}
 			if !matched {
-				break
+				return nil, nil
 			}
 		}
-		if matched {
-			return route.handler, params
-		}
-
+		return route.handler, params
 	} else {
 		if n.handler != nil {
 			return n.handler, nil
