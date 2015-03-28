@@ -161,7 +161,7 @@ func TestSeeforTimer(t *testing.T) {
 		w.Write([]byte("world"))
 	})
 
-	timer := router.UserTimer(nil)
+	timer := router.UseTimer(nil)
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()

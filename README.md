@@ -81,7 +81,7 @@ The idea of "middleware" here is for pre-processing data before executing handle
 				w.Write([]byte(p.Get("name")))
 			})
 		})
-		timer := router.UserTimer(nil)
+		timer := router.UseTimer(nil)
 		
 		go http.ListenAndServe("127.0.0.1:8080", router)
 		http.ListenAndServe("127.0.0.1:8081", timer)

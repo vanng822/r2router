@@ -100,7 +100,7 @@ func (c4 *Seefor) Wrap(handler Handler) Middleware {
 // UserTimer set timer for meaturing endpoint performance.
 // If timer is nil then a new timer will be created.
 // You can serve statistics internal using Timer as handler
-func (c4 *Seefor) UserTimer(timer *Timer) *Timer {
+func (c4 *Seefor) UseTimer(timer *Timer) *Timer {
 	if timer == nil {
 		timer = NewTimer()
 	}
