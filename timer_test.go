@@ -73,4 +73,34 @@ func TestTimerStats(t *testing.T) {
 	contentString := string(content)
 	assert.Contains(t, contentString, "\"Result\":[{\"Route\":\"")
 	assert.Contains(t, contentString, "\"Count\":40")
+	
+	
+	// TODO, assert ordering
+	res, err = http.Get(ts.URL+"/?sort=max")
+	assert.Nil(t, err)
+	content, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Nil(t, err)
+	contentString = string(content)
+	assert.Contains(t, contentString, "\"Result\":[{\"Route\":\"")
+	assert.Contains(t, contentString, "\"Count\":40")
+	
+	res, err = http.Get(ts.URL+"/?sort=tot")
+	assert.Nil(t, err)
+	content, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Nil(t, err)
+	contentString = string(content)
+	assert.Contains(t, contentString, "\"Result\":[{\"Route\":\"")
+	assert.Contains(t, contentString, "\"Count\":40")
+	
+	
+	res, err = http.Get(ts.URL+"/?sort=count")
+	assert.Nil(t, err)
+	content, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Nil(t, err)
+	contentString = string(content)
+	assert.Contains(t, contentString, "\"Result\":[{\"Route\":\"")
+	assert.Contains(t, contentString, "\"Count\":40")
 }
