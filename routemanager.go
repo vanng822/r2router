@@ -3,6 +3,7 @@ package r2router
 import (
 	"fmt"
 	"strings"
+	"net/url"
 )
 
 // For managing route and getting url
@@ -48,25 +49,34 @@ func (m *routeManager) UrlFor(routeName string, params map[string]interface{}) s
 	paths := strings.Split(path, "/")
 	parts := make([]string, 0)
 	counter := 0
+	data := make(map[string]string)
+	for key, val := range params {
+		// could use type switch here
+		data[key] = fmt.Sprintf("%v", val)
+	}
 	for _, p := range paths {
 		if !strings.Contains(p, ":") {
 			parts = append(parts, p)
 			continue
 		}
 		key := p[1:]
-		if val, exist := params[key]; exist {
-			// could use type switch here
-			parts = append(parts, fmt.Sprintf("%v", val))
+		if val, exist := data[key]; exist {
+			
+			parts = append(parts, val)
 			counter += 1
+			delete(data, key)
 			continue
 		}
 
 		panic(fmt.Sprintf("Param %s missing in provided data", key))
 	}
 	
-	if counter != len(params) {
-		panic("Provided params didn't match the path")
+	if len(data) > 0 {
+		urlParams := url.Values{}
+		for key, val := range data {
+			urlParams.Add(key, val)
+		}
+		return fmt.Sprintf("%s?%s", strings.Join(parts, "/"), urlParams.Encode())
 	}
-
 	return strings.Join(parts, "/")
 }
