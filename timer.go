@@ -54,6 +54,7 @@ func (t *Timer) Get(name string) *Counter {
 	}
 	t.mux.Lock()
 	t.routes[name] = &Counter{}
+	t.routes[name].Min = 1 << 63 - 1
 	t.mux.Unlock()
 	return t.routes[name]
 }
