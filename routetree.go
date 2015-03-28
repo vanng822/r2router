@@ -9,6 +9,7 @@ type routeNode struct {
 	paramNode bool
 	paramName string
 	path      string
+	cchildren []*routeNode
 	children  []*routeNode
 	handler   Handler
 	routePath string
@@ -17,6 +18,7 @@ type routeNode struct {
 func newRouteNode() *routeNode {
 	r := &routeNode{}
 	r.children = make([]*routeNode, 0)
+	r.cchildren = make([]*routeNode, 0)
 	return r
 }
 
@@ -65,6 +67,16 @@ func (n *routeNode) insertChild(nn *routeNode) *routeNode {
 	return nn
 }
 
+func (n *routeNode) insertCChild(nn *routeNode) *routeNode {
+	for _, child := range n.cchildren {
+		if child.path == nn.path {
+			return child
+		}
+	}
+	n.cchildren = append(n.cchildren, nn)
+	return nn
+}
+
 type rootNode struct {
 	root    *routeNode
 	handler Handler
@@ -76,28 +88,48 @@ func newRouteTree() *rootNode {
 	return r
 }
 
+func nextPath(path string) (string, string) {
+	i := strings.Index(path, "/")
+	if i == -1 {
+		return path, ""
+	}
+	return path[:i], path[i+1:]
+}
+
 func (n *rootNode) addRoute(path string, handler Handler) {
 	path = strings.Trim(path, "/")
 	if path != "" {
-		paths := strings.Split(path, "/")
 		// Start with the roots
 		parent := n.root
-		for _, p := range paths {
-			//fmt.Println(p)
+		var token string
+		for {
+			if path == "" {
+				break
+			}
+			
 			child := newRouteNode()
 
-			if strings.Contains(p, ":") {
+			if !strings.Contains(path, ":") {
+				child.path = path
+				child.routePath = fmt.Sprintf("%s/%s", parent.routePath, path)
+				parent = parent.insertCChild(child)
+				break
+			}
+
+			token, path = nextPath(path)
+			
+			if strings.Contains(token, ":") {
 				// param type
-				child.paramName = strings.TrimSpace(p[1:])
+				child.paramName = strings.TrimSpace(token[1:])
 				if child.paramName == "" {
 					panic("Param name can not be empty")
 				}
 				child.paramNode = true
 			} else {
-				child.path = p
+				child.path = token
 			}
 			// will be parent for the next path token
-			child.routePath = fmt.Sprintf("%s/%s", parent.routePath, p)
+			child.routePath = fmt.Sprintf("%s/%s", parent.routePath, token)
 			parent = parent.insertChild(child)
 		}
 		// adding handler
@@ -118,18 +150,26 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 	path = strings.Trim(path, "/")
 	if path != "" {
 		// can be better by getting one at the time
-		paths := strings.Split(path, "/")
 		var matched bool
+		var token string
 		route := n.root
 		params := &params_{}
 		params.appData = make(map[string]interface{})
 		params.requestParams = make(map[string]string)
-		for _, p := range paths {
+		for {
+			if path == "" {
+				break
+			}
+			// comparing constant paths
+			for _, c := range route.cchildren {
+				if c.path == path {
+					return c.handler, params, c.routePath
+				}
+			}
+			token, path = nextPath(path)
 			matched = false
-			//fmt.Println("p:", p)
 			for _, c := range route.children {
-				if c.path == p {
-					//fmt.Println("match:", c.path)
+				if c.path == token {
 					route = c
 					matched = true
 					break
@@ -137,7 +177,7 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 				if c.paramNode {
 					route = c
 					matched = true
-					params.requestParams[c.paramName] = p
+					params.requestParams[c.paramName] = token
 					break
 				}
 			}
@@ -147,10 +187,6 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 		}
 		return route.handler, params, route.routePath
 	} else {
-		if n.handler != nil {
-			return n.handler, nil, "/"
-		}
+		return n.handler, nil, "/"	
 	}
-
-	return nil, nil, ""
 }
