@@ -114,7 +114,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 
 			token, path = nextPath(path)
 
-			if strings.Contains(token, ":") {
+			if token[:1] == ":" {
 				// param type
 				child.paramName = strings.TrimSpace(token[1:])
 				if child.paramName == "" {

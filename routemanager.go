@@ -58,7 +58,7 @@ func (m *routeManager) UrlFor(routeName string, params map[string]interface{}) s
 		data[key] = fmt.Sprintf("%v", val)
 	}
 	for _, p := range paths {
-		if !strings.Contains(p, ":") {
+		if p == "" || p[:1] != ":" {
 			parts = append(parts, p)
 			continue
 		}
