@@ -1,5 +1,7 @@
 ## r2router
-A simple router which supports named parameter
+A simple router which supports named parameter. Idea for API or backend without any static content.
+
+The idea of "middleware" here is for pre-processing data before executing handler. This means that they are always executed after routing and before handler. If no route is matched then no middleware is executed.
 
 [![GoDoc](https://godoc.org/github.com/vanng822/r2router?status.svg)](https://godoc.org/github.com/vanng822/r2router)
 
