@@ -59,19 +59,19 @@ func (t *Timer) Get(name string) *Counter {
 }
 
 type Stat struct {
-	Route string
-	Count int64
-	Tot   time.Duration
-	Max   time.Duration
-	Min   time.Duration
-	Avg   time.Duration
+	Route string        `json:"route"`
+	Count int64         `json:"count"`
+	Tot   time.Duration `json:"tot"`
+	Max   time.Duration `json:"max"`
+	Min   time.Duration `json:"min"`
+	Avg   time.Duration `json:"avg"`
 }
 
 type Stats struct {
-	Generated time.Time
-	UpTime    string
-	Result    []*Stat
-	SortBy    string
+	Generated time.Time `json:"generated"`
+	UpTime    string    `json:"upTime"`
+	Result    []*Stat   `json:"result"`
+	SortBy    string    `json:"sortBy"`
 }
 
 // Implements sort interface
@@ -98,7 +98,7 @@ func (s *Stats) Less(i, j int) bool {
 
 // For serving statistics
 func (t *Timer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	
+
 	req.ParseForm()
 	sortBy := req.Form.Get("sort")
 

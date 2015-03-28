@@ -71,9 +71,9 @@ func TestTimerStats(t *testing.T) {
 	res.Body.Close()
 	assert.Nil(t, err)
 	contentString := string(content)
-	assert.Contains(t, contentString, "\"Result\":[{\"Route\":\"")
-	assert.Contains(t, contentString, "\"Count\":40")
-	
+	assert.Contains(t, contentString, "\"result\":[{\"route\":\"")
+	assert.Contains(t, contentString, "\"count\":40")
+	assert.Contains(t, contentString, "\"sortBy\":\"\"")
 	
 	// TODO, assert ordering
 	res, err = http.Get(ts.URL+"/?sort=max")
@@ -82,8 +82,9 @@ func TestTimerStats(t *testing.T) {
 	res.Body.Close()
 	assert.Nil(t, err)
 	contentString = string(content)
-	assert.Contains(t, contentString, "\"Result\":[{\"Route\":\"")
-	assert.Contains(t, contentString, "\"Count\":40")
+	assert.Contains(t, contentString, "\"result\":[{\"route\":\"")
+	assert.Contains(t, contentString, "\"count\":40")
+	assert.Contains(t, contentString, "\"sortBy\":\"max\"")
 	
 	res, err = http.Get(ts.URL+"/?sort=tot")
 	assert.Nil(t, err)
@@ -91,9 +92,9 @@ func TestTimerStats(t *testing.T) {
 	res.Body.Close()
 	assert.Nil(t, err)
 	contentString = string(content)
-	assert.Contains(t, contentString, "\"Result\":[{\"Route\":\"")
-	assert.Contains(t, contentString, "\"Count\":40")
-	
+	assert.Contains(t, contentString, "\"result\":[{\"route\":\"")
+	assert.Contains(t, contentString, "\"count\":40")
+	assert.Contains(t, contentString, "\"sortBy\":\"tot\"")
 	
 	res, err = http.Get(ts.URL+"/?sort=count")
 	assert.Nil(t, err)
@@ -101,6 +102,7 @@ func TestTimerStats(t *testing.T) {
 	res.Body.Close()
 	assert.Nil(t, err)
 	contentString = string(content)
-	assert.Contains(t, contentString, "\"Result\":[{\"Route\":\"")
-	assert.Contains(t, contentString, "\"Count\":40")
+	assert.Contains(t, contentString, "\"result\":[{\"route\":\"")
+	assert.Contains(t, contentString, "\"count\":40")
+	assert.Contains(t, contentString, "\"sortBy\":\"count\"")
 }

@@ -182,5 +182,5 @@ func TestSeeforTimer(t *testing.T) {
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusOK)
-	assert.Contains(t, string(content), "\"Result\":[{\"Route\":\"/hello\",\"Count\":1,\"Tot\":")
+	assert.Contains(t, string(content), "\"result\":[{\"route\":\"/hello\",\"count\":1,\"tot\":")
 }
