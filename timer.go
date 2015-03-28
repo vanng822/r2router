@@ -59,6 +59,7 @@ func (t *Timer) Get(name string) *Counter {
 	return t.routes[name]
 }
 
+// Tot, Max, Min and Avg is time.Duration which mean in nanoseconds
 type Stat struct {
 	Route string        `json:"route"`
 	Count int64         `json:"count"`

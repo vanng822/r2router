@@ -8,11 +8,11 @@ import (
 func main() {
 	router := r2router.NewSeeforRouter()
 	router.Group("/hello", func(r *r2router.GroupRouter) {
-		r.Get("/kitty", func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
+		r.Get("/kitty", func(w http.ResponseWriter, r *http.Request, _ r2router.Params) {
 			w.Write([]byte("Mau"))
 		})
 
-		r.Get("/duck", func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
+		r.Get("/duck", func(w http.ResponseWriter, r *http.Request, _ r2router.Params) {
 			w.Write([]byte("Crispy"))
 		})
 
