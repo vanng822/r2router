@@ -103,10 +103,6 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 		parent := n.root
 		var token string
 		for {
-			if path == "" {
-				break
-			}
-			
 			child := newRouteNode()
 
 			if !strings.Contains(path, ":") {
@@ -117,7 +113,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 			}
 
 			token, path = nextPath(path)
-			
+
 			if strings.Contains(token, ":") {
 				// param type
 				child.paramName = strings.TrimSpace(token[1:])
@@ -131,6 +127,9 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 			// will be parent for the next path token
 			child.routePath = fmt.Sprintf("%s/%s", parent.routePath, token)
 			parent = parent.insertChild(child)
+			if path == "" {
+				break
+			}
 		}
 		// adding handler
 		if parent.handler != nil {
@@ -157,9 +156,6 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 		params.appData = make(map[string]interface{})
 		params.requestParams = make(map[string]string)
 		for {
-			if path == "" {
-				break
-			}
 			// comparing constant paths
 			for _, c := range route.cchildren {
 				if c.path == path {
@@ -184,9 +180,12 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 			if !matched {
 				return nil, nil, ""
 			}
+			if path == "" {
+				break
+			}
 		}
 		return route.handler, params, route.routePath
 	} else {
-		return n.handler, nil, "/"	
+		return n.handler, nil, "/"
 	}
 }
