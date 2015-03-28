@@ -8,10 +8,13 @@ import (
 
 // For managing route and getting url
 type RouteManager interface {
-	// Register a route
-	Add(routeName, path string)
+	// Register a route and return the path
+	// This can be good for adding and register handler at the same time
+	// router.Get(rm.Add("user", "/user/:id"), handler)
+	Add(routeName, path string) string
 	// Return the path for a specific route name
 	// Use for register handler
+	// router.Delete(rm.PathFor("user"), handler)
 	PathFor(routeName string) string
 	// Returning url for given route name and provided data
 	// Will panic if missmatched
@@ -29,12 +32,13 @@ func NewRouteManager() RouteManager {
 	return m
 }
 
-func (m *routeManager) Add(routeName, path string) {
+func (m *routeManager) Add(routeName, path string) string {
 	if _, exist := m.routes[routeName]; exist {
 		panic("Route name must be unique")
 	}
 
 	m.routes[routeName] = path
+	return path
 }
 
 func (m *routeManager) PathFor(routeName string) string {
