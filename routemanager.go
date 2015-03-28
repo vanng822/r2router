@@ -48,7 +48,6 @@ func (m *routeManager) UrlFor(routeName string, params map[string]interface{}) s
 	path := m.PathFor(routeName)
 	paths := strings.Split(path, "/")
 	parts := make([]string, 0)
-	counter := 0
 	data := make(map[string]string)
 	for key, val := range params {
 		// could use type switch here
@@ -61,9 +60,7 @@ func (m *routeManager) UrlFor(routeName string, params map[string]interface{}) s
 		}
 		key := p[1:]
 		if val, exist := data[key]; exist {
-			
 			parts = append(parts, val)
-			counter += 1
 			delete(data, key)
 			continue
 		}
