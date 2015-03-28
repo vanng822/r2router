@@ -51,28 +51,32 @@ func TestAddRouteIndex(t *testing.T) {
 func TestMatchTrue(t *testing.T) {
 	r := newRouteTree()
 	r.addRoute("/users/:user/events", httpTestHandler)
-	h, p := r.match("/users/vanng822/events")
+	h, p, route := r.match("/users/vanng822/events")
 	assert.NotNil(t, h)
 	exectedP := &params_{}
 	exectedP.appData = make(map[string]interface{})
 	exectedP.requestParams = make(map[string]string)
 	exectedP.requestParams["user"] = "vanng822"
 	assert.Equal(t, p, exectedP)
+	
+	assert.Equal(t, route, "/users/:user/events")
 }
 
 func TestMatchIndex(t *testing.T) {
 	r := newRouteTree()
 	r.addRoute("/", httpTestHandler)
-	h, p := r.match("/")
+	h, p, route := r.match("/")
 	assert.NotNil(t, h)
 	assert.Nil(t, p)
+	assert.Equal(t, route, "/")
 }
 
 func TestMatchFalse(t *testing.T) {
 	r := newRouteTree()
 	r.addRoute("/users/:user/events", httpTestHandler)
-	h, p := r.match("/users/:user/orgs")
+	h, p, route := r.match("/users/:user/orgs")
 	assert.Nil(t, h)
 	assert.Nil(t, p)
+	assert.Equal(t, route, "")
 }
 

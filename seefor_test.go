@@ -82,9 +82,9 @@ func TestSeeforInherits(t *testing.T) {
 
 func TestSeeforMiddleware(t *testing.T) {
 	router := NewSeeforRouter()
-	
+
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
-		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") +  p.AppGet("middleware").(string)))
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string)))
 	})
 	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		p.AppSet("middleware", "Test Middleware")
@@ -102,7 +102,6 @@ func TestSeeforMiddleware(t *testing.T) {
 	assert.Equal(t, content, []byte("GET:/user/keys/:id,testingTest Middleware"))
 }
 
-
 func TestSeeforMultiMiddleware(t *testing.T) {
 	router := NewSeeforRouter()
 
@@ -110,7 +109,7 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
 	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
-		p.AppSet("middleware",  "Test Middleware")
+		p.AppSet("middleware", "Test Middleware")
 		p.AppSet("hello", "World")
 		next()
 	})
@@ -139,11 +138,11 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		w.Write([]byte("Hello"))
 	})
-	
+
 	router.UseHandler(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Middleware")
 	})
-	
+
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
@@ -153,4 +152,35 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusOK)
 	assert.Equal(t, content, []byte("Hello"))
+}
+
+func TestSeeforTimer(t *testing.T) {
+	router := NewSeeforRouter()
+
+	router.Get("/hello", func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Write([]byte("world"))
+	})
+
+	timer := router.UserTimer(nil)
+
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	
+	timers := httptest.NewServer(timer)
+	defer timers.Close()
+	
+	res, err := http.Get(ts.URL + "/hello")
+	assert.Nil(t, err)
+	content, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Equal(t, res.StatusCode, http.StatusOK)
+	assert.Equal(t, content, []byte("world"))
+	
+	
+	res, err = http.Get(timers.URL)
+	assert.Nil(t, err)
+	content, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Equal(t, res.StatusCode, http.StatusOK)
+	assert.Contains(t, string(content), "\"Result\":[{\"Route\":\"/hello\",\"Count\":1,\"Tot\":")
 }

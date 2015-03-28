@@ -38,7 +38,7 @@ func NewRouter() *Router {
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	//now := time.Now()
 	if root, exist := r.roots[req.Method]; exist {
-		handler, params := root.match(req.URL.Path)
+		handler, params, _ := root.match(req.URL.Path)
 		if handler != nil {
 			handler(w, req, params)
 			//log.Println(time.Now().Sub(now))
@@ -55,7 +55,7 @@ func (r *Router) handleMissing(w http.ResponseWriter, req *http.Request) {
 		availableMethods := make([]string, 0, len(r.roots))
 		for method := range r.roots {
 			if root, exist := r.roots[method]; exist {
-				handler, _ := root.match(req.URL.Path)
+				handler, _, _ := root.match(req.URL.Path)
 				if handler != nil {
 					availableMethods = append(availableMethods, method)
 				}
@@ -71,7 +71,7 @@ func (r *Router) handleMissing(w http.ResponseWriter, req *http.Request) {
 	if r.HandleMethodNotAllowed {
 		for method := range r.roots {
 			if root, exist := r.roots[method]; exist {
-				handler, _ := root.match(req.URL.Path)
+				handler, _, _ := root.match(req.URL.Path)
 				if handler != nil {
 					if r.MethodNotAllowed != nil {
 						r.MethodNotAllowed(w, req)

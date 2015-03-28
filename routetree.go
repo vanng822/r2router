@@ -11,6 +11,7 @@ type routeNode struct {
 	path      string
 	children  []*routeNode
 	handler   Handler
+	routePath string
 }
 
 func newRouteNode() *routeNode {
@@ -96,6 +97,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 				child.path = p
 			}
 			// will be parent for the next path token
+			child.routePath = fmt.Sprintf("%s/%s", parent.routePath, p)
 			parent = parent.insertChild(child)
 		}
 		// adding handler
@@ -112,7 +114,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 	}
 }
 
-func (n *rootNode) match(path string) (Handler, Params) {
+func (n *rootNode) match(path string) (Handler, Params, string) {
 	path = strings.Trim(path, "/")
 	if path != "" {
 		// can be better by getting one at the time
@@ -140,15 +142,15 @@ func (n *rootNode) match(path string) (Handler, Params) {
 				}
 			}
 			if !matched {
-				return nil, nil
+				return nil, nil, ""
 			}
 		}
-		return route.handler, params
+		return route.handler, params, route.routePath
 	} else {
 		if n.handler != nil {
-			return n.handler, nil
+			return n.handler, nil, "/"
 		}
 	}
 
-	return nil, nil
+	return nil, nil, ""
 }

@@ -3,6 +3,7 @@ package r2router
 import (
 	//"fmt"
 	"net/http"
+	"time"
 )
 
 // Middleware defines how a middle should look like.
@@ -19,6 +20,8 @@ type Middleware func(w http.ResponseWriter, req *http.Request, params Params, ne
 type Seefor struct {
 	Router
 	middlewares []Middleware
+	handleFuncs []http.HandlerFunc
+	timer       *Timer
 }
 
 // NewSeeforRouter for creating a new instance of Seefor router
@@ -29,28 +32,39 @@ func NewSeeforRouter() *Seefor {
 	c4.HandleMethodNotAllowed = true
 	return c4
 }
+
 // Implementing http handler interface.
 // This is a override of Router.ServeHTTP for handling middlewares
 func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if root, exist := c4.roots[req.Method]; exist {
-		handler, params := root.match(req.URL.Path)
+		handler, params, route := root.match(req.URL.Path)
 		if handler != nil {
-			c4.handleMiddlewares(handler, w, req, params)
+			if c4.timer != nil {
+				c4.timeit(route, handler, w, req, params)
+			} else {
+				c4.handleMiddlewares(handler, w, req, params)
+			}
 			return
 		}
 	}
 	c4.Router.handleMissing(w, req)
 }
 
+func (c4 *Seefor) timeit(route string, handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
+	start := time.Now()
+	c4.handleMiddlewares(handler, w, req, params)
+	c4.timer.Get(route).Accumulate(start, time.Now())
+}
+
 func (c4 *Seefor) handleMiddlewares(handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
 	var next func()
-	
+
 	max := len(c4.middlewares)
 	if max == 0 {
 		handler(w, req, params)
 		return
 	}
-	
+
 	counter := 0
 	next = func() {
 		if counter >= max {
@@ -81,4 +95,16 @@ func (c4 *Seefor) Wrap(handler Handler) Middleware {
 		handler(w, req, params)
 		next()
 	}
+}
+
+// UserTimer set timer for meaturing endpoint performance.
+// If timer is nil then a new timer will be created.
+// You can serve statistics internal using Timer as handler
+func (c4 *Seefor) UserTimer(timer *Timer) *Timer {
+	if timer == nil {
+		timer = NewTimer()
+	}
+	c4.timer = timer
+	
+	return c4.timer
 }
