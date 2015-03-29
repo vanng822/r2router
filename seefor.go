@@ -20,7 +20,6 @@ type Middleware func(w http.ResponseWriter, req *http.Request, params Params, ne
 type Seefor struct {
 	Router
 	middlewares []Middleware
-	handleFuncs []http.HandlerFunc
 	timer       *Timer
 }
 

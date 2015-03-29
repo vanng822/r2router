@@ -21,3 +21,19 @@ func TestUrlFor(t *testing.T) {
 		m.UrlFor("some::for", map[string]interface{}{})
 	})
 }
+
+func TestAddNoneUnique(t *testing.T) {
+	m := NewRouteManager()
+	m.Add("same::for", "/some/:key/for")
+	assert.Panics(t, func() {
+		m.Add("same::for", "/some/:key/for")
+	})
+}
+
+func TestPathForMissing(t *testing.T) {
+	m := NewRouteManager()
+	m.Add("same::for", "/some/:key/for")
+	assert.Panics(t, func() {
+		m.PathFor("same::too")
+	})
+}
