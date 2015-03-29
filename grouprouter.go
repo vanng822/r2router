@@ -28,26 +28,26 @@ func (gr *GroupRouter) buildPath(path string) string {
 	return gr.path + "/" + strings.TrimLeft(path, "/")
 }
 
-func (gr *GroupRouter) Get(path string, handler Handler) {
+func (gr *GroupRouter) Get(path string, handler HandlerFunc) {
 	gr.router.Get(gr.buildPath(path), handler)
 }
 
-func (gr *GroupRouter) Head(path string, handler Handler) {
+func (gr *GroupRouter) Head(path string, handler HandlerFunc) {
 	gr.router.Head(gr.buildPath(path), handler)
 }
 
-func (gr *GroupRouter) Post(path string, handler Handler) {
+func (gr *GroupRouter) Post(path string, handler HandlerFunc) {
 	gr.router.Post(gr.buildPath(path), handler)
 }
 
-func (gr *GroupRouter) Put(path string, handler Handler) {
+func (gr *GroupRouter) Put(path string, handler HandlerFunc) {
 	gr.router.Put(gr.buildPath(path), handler)
 }
 
-func (gr *GroupRouter) Delete(path string, handler Handler) {
+func (gr *GroupRouter) Delete(path string, handler HandlerFunc) {
 	gr.router.Delete(gr.buildPath(path), handler)
 }
 
-func (gr *GroupRouter) Patch(path string, handler Handler) {
+func (gr *GroupRouter) Patch(path string, handler HandlerFunc) {
 	gr.router.Patch(gr.buildPath(path), handler)
 }

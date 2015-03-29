@@ -49,13 +49,13 @@ func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c4.Router.handleMissing(w, req)
 }
 
-func (c4 *Seefor) timeit(route string, handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
+func (c4 *Seefor) timeit(route string, handler HandlerFunc, w http.ResponseWriter, req *http.Request, params Params) {
 	start := time.Now()
 	c4.handleMiddlewares(handler, w, req, params)
 	c4.timer.Get(route).Accumulate(start, time.Now())
 }
 
-func (c4 *Seefor) handleMiddlewares(handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
+func (c4 *Seefor) handleMiddlewares(handler HandlerFunc, w http.ResponseWriter, req *http.Request, params Params) {
 	var next func()
 
 	max := len(c4.middlewares)
@@ -82,14 +82,14 @@ func (c4 *Seefor) Use(middleware ...Middleware) {
 	c4.middlewares = append(c4.middlewares, middleware...)
 }
 
-// UseHandler is for adding a Handler as middleware
+// UseHandler is for adding a HandlerFunc as middleware
 // it will first wrap handler to middleware and add it to the stack
-func (c4 *Seefor) UseHandler(handler Handler) {
+func (c4 *Seefor) UseHandler(handler HandlerFunc) {
 	c4.Use(c4.Wrap(handler))
 }
 
 // Wrap for wrapping a handler to middleware
-func (c4 *Seefor) Wrap(handler Handler) Middleware {
+func (c4 *Seefor) Wrap(handler HandlerFunc) Middleware {
 	return func(w http.ResponseWriter, req *http.Request, params Params, next func()) {
 		handler(w, req, params)
 		next()

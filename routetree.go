@@ -11,7 +11,7 @@ type routeNode struct {
 	path      string
 	cchildren []*routeNode
 	children  []*routeNode
-	handler   Handler
+	handler   HandlerFunc
 	routePath string
 }
 
@@ -79,7 +79,7 @@ func (n *routeNode) insertCChild(nn *routeNode) *routeNode {
 
 type rootNode struct {
 	root    *routeNode
-	handler Handler
+	handler HandlerFunc
 }
 
 func newRouteTree() *rootNode {
@@ -96,7 +96,7 @@ func nextPath(path string) (string, string) {
 	return path[:i], path[i+1:]
 }
 
-func (n *rootNode) addRoute(path string, handler Handler) {
+func (n *rootNode) addRoute(path string, handler HandlerFunc) {
 	path = strings.Trim(path, "/")
 	if path != "" {
 		// Start with the roots
@@ -145,7 +145,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 	}
 }
 
-func (n *rootNode) match(path string) (Handler, Params, string) {
+func (n *rootNode) match(path string) (HandlerFunc, Params, string) {
 	path = strings.Trim(path, "/")
 	if path != "" {
 		// can be better by getting one at the time

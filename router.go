@@ -17,8 +17,8 @@ const (
 	HTTP_METHOD_PATCH   = "PATCH"
 )
 
-// Handler define interface handler
-type Handler func(http.ResponseWriter, *http.Request, Params)
+// HandlerFunc define interface handler
+type HandlerFunc func(http.ResponseWriter, *http.Request, Params)
 
 type Router struct {
 	roots                  map[string]*rootNode
@@ -92,31 +92,31 @@ func (r *Router) handleMissing(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (r *Router) Get(path string, handler Handler) {
+func (r *Router) Get(path string, handler HandlerFunc) {
 	r.AddHandler(HTTP_METHOD_GET, path, handler)
 }
 
-func (r *Router) Head(path string, handler Handler) {
+func (r *Router) Head(path string, handler HandlerFunc) {
 	r.AddHandler(HTTP_METHOD_HEAD, path, handler)
 }
 
-func (r *Router) Post(path string, handler Handler) {
+func (r *Router) Post(path string, handler HandlerFunc) {
 	r.AddHandler(HTTP_METHOD_POST, path, handler)
 }
 
-func (r *Router) Put(path string, handler Handler) {
+func (r *Router) Put(path string, handler HandlerFunc) {
 	r.AddHandler(HTTP_METHOD_PUT, path, handler)
 }
 
-func (r *Router) Delete(path string, handler Handler) {
+func (r *Router) Delete(path string, handler HandlerFunc) {
 	r.AddHandler(HTTP_METHOD_DELETE, path, handler)
 }
 
-func (r *Router) Patch(path string, handler Handler) {
+func (r *Router) Patch(path string, handler HandlerFunc) {
 	r.AddHandler(HTTP_METHOD_PATCH, path, handler)
 }
 
-func (r *Router) AddHandler(method, path string, handler Handler) {
+func (r *Router) AddHandler(method, path string, handler HandlerFunc) {
 	if _, exists := r.roots[method]; !exists {
 		r.roots[method] = newRouteTree()
 	}
