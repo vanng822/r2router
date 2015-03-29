@@ -11,12 +11,14 @@ import (
 	"time"
 )
 
+// Statistic entry for one endpoint.
+// Values are atomic updated
 type Counter struct {
-	Count int64
-	Tot   time.Duration
-	Max   time.Duration
-	Min   time.Duration
-	Avg   time.Duration
+	Count int64         // Number of requests at this endpoint
+	Tot   time.Duration // Accumulated total time
+	Max   time.Duration // Worst time of all requests
+	Min   time.Duration // Best time of all requests
+	Avg   time.Duration // Average time cross all requests
 }
 
 func (c *Counter) Accumulate(start time.Time, end time.Time) {
@@ -35,6 +37,8 @@ func (c *Counter) Accumulate(start time.Time, end time.Time) {
 
 }
 
+// Keep track on routes performance.
+// Each route has own Counter entry
 type Timer struct {
 	Since  time.Time
 	routes map[string]*Counter
@@ -48,13 +52,16 @@ func NewTimer() *Timer {
 	return t
 }
 
+// Get returns a Counter for a route.
+// If there is no entry it will create a new one.
+// It will lock during creation
 func (t *Timer) Get(name string) *Counter {
 	if c, exist := t.routes[name]; exist {
 		return c
 	}
 	t.mux.Lock()
 	t.routes[name] = &Counter{}
-	t.routes[name].Min = 1 << 63 - 1
+	t.routes[name].Min = 1<<63 - 1
 	t.mux.Unlock()
 	return t.routes[name]
 }
@@ -69,6 +76,7 @@ type Stat struct {
 	Avg   time.Duration `json:"avg"`
 }
 
+// For generate statistics
 type Stats struct {
 	Generated time.Time `json:"generated"`
 	UpTime    string    `json:"upTime"`
