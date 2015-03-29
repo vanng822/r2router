@@ -25,5 +25,8 @@ func main() {
 		w.Write([]byte(fmt.Sprintf("%s %s!", p.AppGet("say").(string), p.Get("name"))))
 	})
 	
-	http.ListenAndServe(":8080", seefor)
+	timer := seefor.UseTimer(nil)
+	
+	go http.ListenAndServe("127.0.0.1:8080", seefor)
+	http.ListenAndServe("127.0.0.1:8081", timer)
 }

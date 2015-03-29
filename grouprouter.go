@@ -47,3 +47,7 @@ func (gr *GroupRouter) Put(path string, handler Handler) {
 func (gr *GroupRouter) Delete(path string, handler Handler) {
 	gr.router.Delete(gr.buildPath(path), handler)
 }
+
+func (gr *GroupRouter) Patch(path string, handler Handler) {
+	gr.router.Patch(gr.buildPath(path), handler)
+}

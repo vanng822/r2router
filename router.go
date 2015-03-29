@@ -14,6 +14,7 @@ const (
 	HTTP_METHOD_OPTIONS = "OPTIONS"
 	HTTP_METHOD_HEAD    = "HEAD"
 	HTTP_METHOD_PUT     = "PUT"
+	HTTP_METHOD_PATCH   = "PATCH"
 )
 
 // Handler define interface handler
@@ -109,6 +110,10 @@ func (r *Router) Put(path string, handler Handler) {
 
 func (r *Router) Delete(path string, handler Handler) {
 	r.AddHandler(HTTP_METHOD_DELETE, path, handler)
+}
+
+func (r *Router) Patch(path string, handler Handler) {
+	r.AddHandler(HTTP_METHOD_PATCH, path, handler)
 }
 
 func (r *Router) AddHandler(method, path string, handler Handler) {
