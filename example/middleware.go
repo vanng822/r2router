@@ -11,13 +11,13 @@ import (
 func main() {
 	seefor := r2router.NewSeeforRouter()
 	// measure time middleware
-	seefor.Use(func(w http.ResponseWriter, r *http.Request, p r2router.Params, next func()) {
+	seefor.Before(func(w http.ResponseWriter, r *http.Request, next func()) {
 		start := time.Now()
 		next()
 		log.Printf("took: %s", time.Now().Sub(start)) 
 	})
 	// set label "say"
-	seefor.Use(func(w http.ResponseWriter, r *http.Request, p r2router.Params, next func()) {
+	seefor.After(func(w http.ResponseWriter, r *http.Request, p r2router.Params, next func()) {
 		p.AppSet("say", "Hello")
 		next()
 	})
