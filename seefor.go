@@ -82,16 +82,23 @@ func (c4 *Seefor) Use(middleware ...Middleware) {
 	c4.middlewares = append(c4.middlewares, middleware...)
 }
 
-// UseHandler is for adding a HandlerFunc as middleware
-// it will first wrap handler to middleware and add it to the stack
-func (c4 *Seefor) UseHandler(handler HandlerFunc) {
-	c4.Use(c4.Wrap(handler))
-}
-
 // Wrap for wrapping a handler to middleware
+// Be aware that it will not be able to stop execution propagation
+// That is it will continue to execute the next middleware/handler
 func (c4 *Seefor) Wrap(handler HandlerFunc) Middleware {
 	return func(w http.ResponseWriter, req *http.Request, params Params, next func()) {
 		handler(w, req, params)
+		next()
+	}
+}
+
+
+// WrapHandler for wrapping a http.Handler to middleware.
+// Be aware that it will not be able to stop execution propagation
+// That is it will continue to execute the next middleware/handler
+func (c4 *Seefor) WrapHandler(handler http.Handler) Middleware {
+	return func(w http.ResponseWriter, req *http.Request, _ Params, next func()) {
+		handler.ServeHTTP(w, req)
 		next()
 	}
 }

@@ -114,9 +114,9 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 		next()
 	})
 
-	router.UseHandler(func(w http.ResponseWriter, r *http.Request, p Params) {
+	router.Use(router.Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Middleware")
-	})
+	}))
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()
@@ -139,9 +139,9 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 		w.Write([]byte("Hello"))
 	})
 
-	router.UseHandler(func(w http.ResponseWriter, r *http.Request, p Params) {
+	router.Use(router.Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Middleware")
-	})
+	}))
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()
@@ -152,6 +152,33 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusOK)
 	assert.Equal(t, content, []byte("Hello"))
+}
+
+
+func TestSeeforMiddlewareContinue(t *testing.T) {
+	router := NewSeeforRouter()
+
+	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
+	})
+	
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello"))
+	})
+	router.Use(router.WrapHandler(handler))
+
+	router.Use(router.Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Write([]byte("World"))
+	}))
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	
+	res, err := http.Get(ts.URL + "/user/keys/testing")
+	assert.Nil(t, err)
+	content, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Equal(t, res.StatusCode, http.StatusOK)
+	assert.Equal(t, string(content), "HelloWorldGET:/user/keys/:id,testing")
 }
 
 func TestSeeforTimer(t *testing.T) {
