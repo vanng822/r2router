@@ -16,12 +16,13 @@ func TestCounter(t *testing.T) {
 	w := sync.WaitGroup{}
 	
 	for i := 0; i < 1000; i++ {
+		before := time.Now()
 		w.Add(1)
-		go func(start time.Time) {
+		go func(before, after time.Time) {
 			end := time.Now()
-			c.Accumulate(start, end)
+			c.Accumulate(before, after, end)
 			w.Done()
-		}(time.Now())
+		}(before, time.Now())
 	}
 	w.Wait()
 	assert.NotNil(t, c.Count)
@@ -33,12 +34,13 @@ func TestTimer(t *testing.T) {
 	w := sync.WaitGroup{}
 	
 	for i := 0; i < 1000; i++ {
+		before := time.Now()
 		w.Add(1)
-		go func(start time.Time, name string) {
+		go func(before, after time.Time, name string) {
 			end := time.Now()
-			timer.Get(name).Accumulate(start, end)
+			timer.Get(name).Accumulate(before, after, end)
 			w.Done()
-		}(time.Now(), string(i%25))
+		}(before, time.Now(), string(i%25))
 	}
 	w.Wait()
 	assert.NotNil(t, timer.routes)
@@ -50,12 +52,13 @@ func TestTimerStats(t *testing.T) {
 	w := sync.WaitGroup{}
 	
 	for i := 0; i < 1000; i++ {
+		before := time.Now()
 		w.Add(1)
-		go func(start time.Time, name string) {
+		go func(before, after time.Time, name string) {
 			end := time.Now()
-			timer.Get(name).Accumulate(start, end)
+			timer.Get(name).Accumulate(before, after, end)
 			w.Done()
-		}(time.Now(), "r"+string(i%25))
+		}(before, time.Now(), "r"+string(i%25))
 	}
 	w.Wait()
 	assert.NotNil(t, timer.routes)

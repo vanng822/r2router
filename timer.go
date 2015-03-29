@@ -21,8 +21,8 @@ type Counter struct {
 	Avg   time.Duration // Average time cross all requests
 }
 
-func (c *Counter) Accumulate(start time.Time, end time.Time) {
-	d := int64(end.Sub(start))
+func (c *Counter) Accumulate(before time.Time, after time.Time, end time.Time) {
+	d := int64(end.Sub(before))
 	tot := atomic.AddInt64((*int64)(&c.Tot), d)
 	count := atomic.AddInt64((*int64)(&c.Count), 1)
 	atomic.StoreInt64((*int64)(&c.Avg), tot/count)

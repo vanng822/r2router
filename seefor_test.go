@@ -86,7 +86,7 @@ func TestSeeforMiddleware(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string)))
 	})
-	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.After(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		p.AppSet("middleware", "Test Middleware")
 		next()
 	})
@@ -108,13 +108,13 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
-	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.After(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		p.AppSet("middleware", "Test Middleware")
 		p.AppSet("hello", "World")
 		next()
 	})
 
-	router.Use(router.Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
+	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Middleware")
 	}))
 
@@ -135,11 +135,11 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
-	router.Use(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.After(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		w.Write([]byte("Hello"))
 	})
 
-	router.Use(router.Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
+	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Middleware")
 	}))
 
@@ -154,25 +154,24 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	assert.Equal(t, content, []byte("Hello"))
 }
 
-
 func TestSeeforMiddlewareContinue(t *testing.T) {
 	router := NewSeeforRouter()
 
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
-	
+
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello"))
 	})
-	router.Use(router.WrapHandler(handler))
+	router.After(WrapHandler(handler))
 
-	router.Use(router.Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
+	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("World"))
 	}))
 	ts := httptest.NewServer(router)
 	defer ts.Close()
-	
+
 	res, err := http.Get(ts.URL + "/user/keys/testing")
 	assert.Nil(t, err)
 	content, err := ioutil.ReadAll(res.Body)
@@ -192,22 +191,44 @@ func TestSeeforTimer(t *testing.T) {
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()
-	
+
 	timers := httptest.NewServer(timer)
 	defer timers.Close()
-	
+
 	res, err := http.Get(ts.URL + "/hello")
 	assert.Nil(t, err)
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusOK)
 	assert.Equal(t, content, []byte("world"))
-	
-	
+
 	res, err = http.Get(timers.URL)
 	assert.Nil(t, err)
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusOK)
 	assert.Contains(t, string(content), "\"result\":[{\"route\":\"/hello\",\"count\":1,\"tot\":")
+}
+
+func TestMiddlewareBefore(t *testing.T) {
+	router := NewSeeforRouter()
+
+	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
+	})
+
+	router.Before(func(w http.ResponseWriter, r *http.Request, next func()) {
+		w.Write([]byte("Hello"))
+	})
+	
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	
+	res, err := http.Get(ts.URL + "/user/keys/testing")
+	assert.Nil(t, err)
+	content, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Equal(t, res.StatusCode, http.StatusOK)
+	assert.Equal(t, string(content), "Hello")
 }
