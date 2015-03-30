@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+// Shortcut for map[string]interface{}
+// Helpful to build data for json response
+type M map[string]interface{}
+
 // Before defines how a middleware should look like.
 // Before middlewares are for handling request before routing.
 // Before middlewares are executed in the order they were inserted.
