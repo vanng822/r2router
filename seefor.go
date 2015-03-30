@@ -10,19 +10,41 @@ import (
 // Helpful to build data for json response
 type M map[string]interface{}
 
+
+
 // Before defines how a middleware should look like.
 // Before middlewares are for handling request before routing.
 // Before middlewares are executed in the order they were inserted.
 // A middleware can choose to response to a request and not call next
 // for continue with the next middleware/handler
-type Before func(w http.ResponseWriter, req *http.Request, next func())
+type Before interface {
+	ServeHTTP(w http.ResponseWriter, req *http.Request, next func())
+}
+
+// BeforeFunc for wrapping a function that have this signature to use as
+// Before middleware
+type BeforeFunc func(w http.ResponseWriter, req *http.Request, next func())
+
+func (b BeforeFunc) ServeHTTP(w http.ResponseWriter, req *http.Request, next func()) {
+	b(w, req, next)
+}
 
 // After defines how a middleware should look like.
 // After middlewares are for handling request after routing.
 // After middlewares are executed in the order they were inserted.
 // A middleware can choose to response to a request and not call next
 // for continue with the next middleware/handler
-type After func(w http.ResponseWriter, req *http.Request, params Params, next func())
+type After interface {
+	ServeHTTP(w http.ResponseWriter, req *http.Request, params Params, next func())
+}
+
+// AfterFunc for wrapping a function that have this signature to use as
+// After middleware
+type AfterFunc func(w http.ResponseWriter, req *http.Request, params Params, next func())
+
+func (a AfterFunc) ServeHTTP(w http.ResponseWriter, req *http.Request, params Params, next func()) {
+	a(w, req, params, next)
+}
 
 // Seefor is a subtype of Router.
 // It supports a simple middleware layers.
@@ -81,35 +103,35 @@ func (c4 *Seefor) handleBeforeMiddlewares(w http.ResponseWriter, req *http.Reque
 		}
 		middleware := c4.befores[counter]
 		counter += 1
-		middleware(w, req, next)
+		middleware.ServeHTTP(w, req, next)
 	}
 	next()
 }
 
-func (c4 *Seefor) timeit(route string, before time.Time, handler HandlerFunc, w http.ResponseWriter, req *http.Request, params Params) {
+func (c4 *Seefor) timeit(route string, before time.Time, handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
 	after := time.Now()
 	c4.handleAfterMiddlewares(handler, w, req, params)
 	c4.timer.Get(route).Accumulate(before, after, time.Now())
 }
 
-func (c4 *Seefor) handleAfterMiddlewares(handler HandlerFunc, w http.ResponseWriter, req *http.Request, params Params) {
+func (c4 *Seefor) handleAfterMiddlewares(handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
 	var next func()
 
 	max := len(c4.afters)
 	if max == 0 {
-		handler(w, req, params)
+		handler.ServeHTTP(w, req, params)
 		return
 	}
 
 	counter := 0
 	next = func() {
 		if counter >= max {
-			handler(w, req, params)
+			handler.ServeHTTP(w, req, params)
 			return
 		}
 		middleware := c4.afters[counter]
 		counter += 1
-		middleware(w, req, params, next)
+		middleware.ServeHTTP(w, req, params, next)
 	}
 	next()
 }
@@ -128,30 +150,30 @@ func (c4 *Seefor) After(middleware ...After) {
 // Be aware that it will not be able to stop execution propagation
 // That is it will continue to execute the next middleware/handler
 func Wrap(handler HandlerFunc) After {
-	return func(w http.ResponseWriter, req *http.Request, params Params, next func()) {
+	return AfterFunc(func(w http.ResponseWriter, req *http.Request, params Params, next func()) {
 		handler(w, req, params)
 		next()
-	}
+	})
 }
 
 // WrapHandler for wrapping a http.Handler to After middleware.
 // Be aware that it will not be able to stop execution propagation
 // That is it will continue to execute the next middleware/handler
 func WrapHandler(handler http.Handler) After {
-	return func(w http.ResponseWriter, req *http.Request, _ Params, next func()) {
+	return AfterFunc(func(w http.ResponseWriter, req *http.Request, _ Params, next func()) {
 		handler.ServeHTTP(w, req)
 		next()
-	}
+	})
 }
 
 // WrapBeforeHandler for wrapping a http.Handler to Before middleware.
 // Be aware that it will not be able to stop execution propagation
 // That is it will continue to execute the next middleware/handler
 func WrapBeforeHandler(handler http.Handler) Before {
-	return func(w http.ResponseWriter, req *http.Request, next func()) {
+	return BeforeFunc(func(w http.ResponseWriter, req *http.Request, next func()) {
 		handler.ServeHTTP(w, req)
 		next()
-	}
+	})
 }
 
 // UseTimer set timer for meaturing endpoint performance.

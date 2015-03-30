@@ -86,10 +86,10 @@ func TestSeeforMiddleware(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string)))
 	})
-	router.After(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.After(AfterFunc(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		p.AppSet("middleware", "Test Middleware")
 		next()
-	})
+	}))
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()
@@ -108,11 +108,11 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
-	router.After(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.After(AfterFunc(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		p.AppSet("middleware", "Test Middleware")
 		p.AppSet("hello", "World")
 		next()
-	})
+	}))
 
 	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Middleware")
@@ -135,9 +135,9 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
-	router.After(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.After(AfterFunc(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
 		w.Write([]byte("Hello"))
-	})
+	}))
 
 	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Middleware")
@@ -217,9 +217,9 @@ func TestMiddlewareBefore(t *testing.T) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
 
-	router.Before(func(w http.ResponseWriter, r *http.Request, next func()) {
+	router.Before(BeforeFunc(func(w http.ResponseWriter, r *http.Request, next func()) {
 		w.Write([]byte("Hello"))
-	})
+	}))
 	
 	ts := httptest.NewServer(router)
 	defer ts.Close()

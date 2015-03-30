@@ -17,8 +17,16 @@ const (
 	HTTP_METHOD_PATCH   = "PATCH"
 )
 
+type Handler interface {
+	ServeHTTP(w http.ResponseWriter, req *http.Request, params Params)
+}
+
 // HandlerFunc define interface handler
-type HandlerFunc func(http.ResponseWriter, *http.Request, Params)
+type HandlerFunc func(w http.ResponseWriter, req *http.Request, params Params)
+
+func (h HandlerFunc) ServeHTTP(w http.ResponseWriter, req *http.Request, params Params) {
+	h(w, req, params)
+}
 
 type Router struct {
 	roots                  map[string]*rootNode
@@ -41,7 +49,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if root, exist := r.roots[req.Method]; exist {
 		handler, params, _ := root.match(req.URL.Path)
 		if handler != nil {
-			handler(w, req, params)
+			handler.ServeHTTP(w, req, params)
 			//log.Println(time.Now().Sub(now))
 			return
 		}
@@ -120,7 +128,7 @@ func (r *Router) AddHandler(method, path string, handler HandlerFunc) {
 	if _, exists := r.roots[method]; !exists {
 		r.roots[method] = newRouteTree()
 	}
-	r.roots[method].addRoute(path, handler)
+	r.roots[method].addRoute(path, HandlerFunc(handler))
 }
 
 // Group takes a path which typically a prefix for an endpoint

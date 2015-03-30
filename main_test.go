@@ -7,7 +7,10 @@ import (
 	"testing"
 )
 
-func httpTestHandler(w http.ResponseWriter, r *http.Request, p Params) {}
+type httpTestHandler struct {
+}
+
+func (h *httpTestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, p Params) {}
 
 func TestMain(m *testing.M) {
 	fmt.Println("Test starting")

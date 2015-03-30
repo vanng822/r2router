@@ -8,8 +8,8 @@ import (
 func TestAddRouteDuplicate(t *testing.T) {
 	r := newRouteTree()
 	assert.Panics(t, func() {
-		r.addRoute("/users/:user/events", httpTestHandler)
-		r.addRoute("/users/:user/events", httpTestHandler)
+		r.addRoute("/users/:user/events", &httpTestHandler{})
+		r.addRoute("/users/:user/events", &httpTestHandler{})
 	})
 }
 
@@ -17,15 +17,15 @@ func TestAddRouteDuplicate(t *testing.T) {
 func TestAddRouteDiffParamName(t *testing.T) {
 	r := newRouteTree()
 	assert.Panics(t, func() {
-		r.addRoute("/users/:username/following/:target_user", httpTestHandler)
-		r.addRoute("/users/:user/events", httpTestHandler)
+		r.addRoute("/users/:username/following/:target_user", &httpTestHandler{})
+		r.addRoute("/users/:user/events", &httpTestHandler{})
 	})
 }
 
 func TestSwapNodes(t *testing.T) {
 	r := newRouteTree()
-	r.addRoute("/users/:user/events", httpTestHandler)
-	r.addRoute("/users/list/events", httpTestHandler)
+	r.addRoute("/users/:user/events", &httpTestHandler{})
+	r.addRoute("/users/list/events", &httpTestHandler{})
 	assert.Equal(t, len(r.root.children[0].children), 1)
 	assert.Equal(t, r.root.cchildren[0].path, "users/list/events")
 	assert.True(t, r.root.children[0].children[0].paramNode)
@@ -35,22 +35,22 @@ func TestSwapNodes(t *testing.T) {
 func TestAddRouteBrokenParamName(t *testing.T) {
 	r := newRouteTree()
 	assert.Panics(t, func() {
-		r.addRoute("/users/:/following", httpTestHandler)
+		r.addRoute("/users/:/following", &httpTestHandler{})
 	})
 }
 
 func TestAddRouteIndex(t *testing.T) {
 	r := newRouteTree()
-	r.addRoute("/", httpTestHandler)
+	r.addRoute("/", &httpTestHandler{})
 	assert.NotNil(t, r.handler)
 	assert.Panics(t, func() {
-		r.addRoute("/", httpTestHandler)
+		r.addRoute("/", &httpTestHandler{})
 	})
 }
 
 func TestMatchTrue(t *testing.T) {
 	r := newRouteTree()
-	r.addRoute("/users/:user/events", httpTestHandler)
+	r.addRoute("/users/:user/events", &httpTestHandler{})
 	h, p, route := r.match("/users/vanng822/events")
 	assert.NotNil(t, h)
 	exectedP := &params_{}
@@ -64,7 +64,7 @@ func TestMatchTrue(t *testing.T) {
 
 func TestMatchIndex(t *testing.T) {
 	r := newRouteTree()
-	r.addRoute("/", httpTestHandler)
+	r.addRoute("/", &httpTestHandler{})
 	h, p, route := r.match("/")
 	assert.NotNil(t, h)
 	assert.Nil(t, p)
@@ -73,7 +73,7 @@ func TestMatchIndex(t *testing.T) {
 
 func TestMatchFalse(t *testing.T) {
 	r := newRouteTree()
-	r.addRoute("/users/:user/events", httpTestHandler)
+	r.addRoute("/users/:user/events", &httpTestHandler{})
 	h, p, route := r.match("/users/:user/orgs")
 	assert.Nil(t, h)
 	assert.Nil(t, p)
