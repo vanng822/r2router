@@ -14,18 +14,23 @@ import (
 // Statistic entry for one endpoint.
 // Values are atomic updated
 type Counter struct {
-	Count int64         // Number of requests at this endpoint
-	Tot   time.Duration // Accumulated total time
-	Max   time.Duration // Worst time of all requests
-	Min   time.Duration // Best time of all requests
-	Avg   time.Duration // Average time cross all requests
+	Count     int64         // Number of requests at this endpoint
+	Tot       time.Duration // Accumulated total time
+	Max       time.Duration // Worst time of all requests
+	Min       time.Duration // Best time of all requests
+	BeforeTot time.Duration // Total time of Before middlewares
+	AfterTot  time.Duration // Total time of After middlewares
 }
 
-func (c *Counter) Accumulate(before time.Time, after time.Time, end time.Time) {
-	d := int64(end.Sub(before))
-	tot := atomic.AddInt64((*int64)(&c.Tot), d)
-	count := atomic.AddInt64((*int64)(&c.Count), 1)
-	atomic.StoreInt64((*int64)(&c.Avg), tot/count)
+func (c *Counter) Accumulate(started, beforeEnd, after, end time.Time) {
+	d := int64(end.Sub(started))
+	beforeD := int64(beforeEnd.Sub(started))
+	afterD := int64(end.Sub(after))
+	atomic.AddInt64((*int64)(&c.Tot), d)
+	atomic.AddInt64((*int64)(&c.BeforeTot), beforeD)
+	atomic.AddInt64((*int64)(&c.AfterTot), afterD)
+	atomic.AddInt64((*int64)(&c.Count), 1)
+
 	max := int64(c.Max)
 	if d > max {
 		atomic.CompareAndSwapInt64((*int64)(&c.Max), max, d)
@@ -73,12 +78,14 @@ func (t *Timer) Get(name string) *Counter {
 
 // Tot, Max, Min and Avg is time.Duration which mean in nanoseconds
 type Stat struct {
-	Route string        `json:"route"`
-	Count int64         `json:"count"`
-	Tot   time.Duration `json:"tot"`
-	Max   time.Duration `json:"max"`
-	Min   time.Duration `json:"min"`
-	Avg   time.Duration `json:"avg"`
+	Route     string        `json:"route"`
+	Count     int64         `json:"count"`
+	Tot       time.Duration `json:"tot"`
+	Max       time.Duration `json:"max"`
+	Min       time.Duration `json:"min"`
+	Avg       time.Duration `json:"avg"`
+	AvgBefore time.Duration `json:"avg_before"`
+	AvgAfter  time.Duration `json:"avg_after"`
 }
 
 // For generate statistics
@@ -106,6 +113,10 @@ func (s *Stats) Less(i, j int) bool {
 		return s.Result[i].Tot < s.Result[j].Tot
 	case "max":
 		return s.Result[i].Max < s.Result[j].Max
+	case "avg_after":
+		return s.Result[i].AvgAfter < s.Result[j].AvgAfter
+	case "avg_before":
+		return s.Result[i].AvgBefore < s.Result[j].AvgBefore
 	default:
 		return s.Result[i].Avg < s.Result[j].Avg
 	}
@@ -128,7 +139,9 @@ func (t *Timer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		stat.Route = k
 		stat.Count = v.Count
 		stat.Tot = v.Tot
-		stat.Avg = v.Avg
+		stat.Avg = time.Duration(int64(v.Tot) / v.Count)
+		stat.AvgAfter = time.Duration(int64(v.AfterTot) / v.Count)
+		stat.AvgBefore = time.Duration(int64(v.BeforeTot) / v.Count)
 		stat.Max = v.Max
 		stat.Min = v.Min
 		stats.Result = append(stats.Result, stat)

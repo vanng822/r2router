@@ -10,8 +10,6 @@ import (
 // Helpful to build data for json response
 type M map[string]interface{}
 
-
-
 // Before defines how a middleware should look like.
 // Before middlewares are for handling request before routing.
 // Before middlewares are executed in the order they were inserted.
@@ -71,13 +69,14 @@ func NewSeeforRouter() *Seefor {
 // Implementing http handler interface.
 // This is a override of Router.ServeHTTP for handling middlewares
 func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	before := time.Now()
+	started := time.Now()
 	c4.handleBeforeMiddlewares(w, req, func() {
+		beforeEnd := time.Now()
 		if root, exist := c4.roots[req.Method]; exist {
 			handler, params, route := root.match(req.URL.Path)
 			if handler != nil {
 				if c4.timer != nil {
-					c4.timeit(route, before, handler, w, req, params)
+					c4.timeit(route, started, beforeEnd, handler, w, req, params)
 				} else {
 					c4.handleAfterMiddlewares(handler, w, req, params)
 				}
@@ -108,10 +107,10 @@ func (c4 *Seefor) handleBeforeMiddlewares(w http.ResponseWriter, req *http.Reque
 	next()
 }
 
-func (c4 *Seefor) timeit(route string, before time.Time, handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
+func (c4 *Seefor) timeit(route string, started, beforeEnd time.Time, handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
 	after := time.Now()
 	c4.handleAfterMiddlewares(handler, w, req, params)
-	c4.timer.Get(route).Accumulate(before, after, time.Now())
+	c4.timer.Get(route).Accumulate(started, beforeEnd, after, time.Now())
 }
 
 func (c4 *Seefor) handleAfterMiddlewares(handler Handler, w http.ResponseWriter, req *http.Request, params Params) {

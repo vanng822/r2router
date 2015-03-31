@@ -20,7 +20,7 @@ func TestCounter(t *testing.T) {
 		w.Add(1)
 		go func(before, after time.Time) {
 			end := time.Now()
-			c.Accumulate(before, after, end)
+			c.Accumulate(before, after, end, time.Now())
 			w.Done()
 		}(before, time.Now())
 	}
@@ -38,7 +38,7 @@ func TestTimer(t *testing.T) {
 		w.Add(1)
 		go func(before, after time.Time, name string) {
 			end := time.Now()
-			timer.Get(name).Accumulate(before, after, end)
+			timer.Get(name).Accumulate(before, after, end, time.Now())
 			w.Done()
 		}(before, time.Now(), string(i%25))
 	}
@@ -56,7 +56,7 @@ func TestTimerStats(t *testing.T) {
 		w.Add(1)
 		go func(before, after time.Time, name string) {
 			end := time.Now()
-			timer.Get(name).Accumulate(before, after, end)
+			timer.Get(name).Accumulate(before, after, end, time.Now())
 			w.Done()
 		}(before, time.Now(), "r"+string(i%25))
 	}
@@ -108,4 +108,26 @@ func TestTimerStats(t *testing.T) {
 	assert.Contains(t, contentString, "\"result\":[{\"route\":\"")
 	assert.Contains(t, contentString, "\"count\":40")
 	assert.Contains(t, contentString, "\"sortBy\":\"count\"")
+	
+	
+	res, err = http.Get(ts.URL+"/?sort=avg_before")
+	assert.Nil(t, err)
+	content, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Nil(t, err)
+	contentString = string(content)
+	assert.Contains(t, contentString, "\"result\":[{\"route\":\"")
+	assert.Contains(t, contentString, "\"count\":40")
+	assert.Contains(t, contentString, "\"sortBy\":\"avg_before\"")
+	
+	
+	res, err = http.Get(ts.URL+"/?sort=avg_after")
+	assert.Nil(t, err)
+	content, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	assert.Nil(t, err)
+	contentString = string(content)
+	assert.Contains(t, contentString, "\"result\":[{\"route\":\"")
+	assert.Contains(t, contentString, "\"count\":40")
+	assert.Contains(t, contentString, "\"sortBy\":\"avg_after\"")
 }
