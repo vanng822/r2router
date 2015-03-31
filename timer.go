@@ -60,9 +60,14 @@ func (t *Timer) Get(name string) *Counter {
 		return c
 	}
 	t.mux.Lock()
+	defer t.mux.Unlock()
+	// could be a race so check again
+	// could loose som small data but good not to
+	if c, exist := t.routes[name]; exist {
+		return c
+	}
 	t.routes[name] = &Counter{}
 	t.routes[name].Min = 1<<63 - 1
-	t.mux.Unlock()
 	return t.routes[name]
 }
 
