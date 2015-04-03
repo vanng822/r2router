@@ -18,7 +18,7 @@ type RouteManager interface {
 	PathFor(routeName string) string
 	// Returning url for given route name and provided data
 	// Will panic if missmatched
-	UrlFor(routeName string, params map[string]interface{}) string
+	UrlFor(routeName string, params map[string][]string) string
 }
 
 type routeManager struct {
@@ -48,38 +48,40 @@ func (m *routeManager) PathFor(routeName string) string {
 	panic(fmt.Sprintf("Could not find any path for route name: %s", routeName))
 }
 
-func (m *routeManager) UrlFor(routeName string, params map[string]interface{}) string {
+func (m *routeManager) UrlFor(routeName string, params map[string][]string) string {
 	return m.UrlForPath(m.PathFor(routeName), params)
 }
 
-func (m *routeManager) UrlForPath(path string, params map[string]interface{}) string {
+func (m *routeManager) UrlForPath(path string, params map[string][]string) string {
 	paths := strings.Split(path, "/")
 	parts := make([]string, 0)
-	data := make(map[string]string)
-	for key, val := range params {
-		// could use type switch here
-		data[key] = fmt.Sprintf("%v", val)
+	
+	urlParams := url.Values{}
+	for k, v := range params {
+		for _, vv := range v {
+			urlParams.Add(k, vv)
+		}
 	}
+	
 	for _, p := range paths {
 		if p == "" || p[:1] != ":" {
 			parts = append(parts, p)
 			continue
 		}
 		key := p[1:]
-		if val, exist := data[key]; exist {
-			parts = append(parts, val)
-			delete(data, key)
+		if val, exist := params[key]; exist {
+			if len(val) != 1 {
+				panic(fmt.Sprintf("Param %s has multiple value", key))
+			}
+			parts = append(parts, val[0])
+			urlParams.Del(key)
 			continue
 		}
 
 		panic(fmt.Sprintf("Param %s missing in provided data", key))
 	}
 	
-	if len(data) > 0 {
-		urlParams := url.Values{}
-		for key, val := range data {
-			urlParams.Add(key, val)
-		}
+	if len(urlParams) > 0 {
 		return fmt.Sprintf("%s?%s", strings.Join(parts, "/"), urlParams.Encode())
 	}
 	return strings.Join(parts, "/")
