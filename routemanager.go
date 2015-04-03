@@ -19,6 +19,9 @@ type RouteManager interface {
 	// Returning url for given route name and provided data
 	// Will panic if missmatched
 	UrlFor(routeName string, params map[string][]string) string
+	// Returning url for given path and provided data
+	// Will panic if missmatched
+	UrlForPath(path string, params map[string][]string) string
 }
 
 type routeManager struct {
