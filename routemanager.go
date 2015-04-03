@@ -49,7 +49,10 @@ func (m *routeManager) PathFor(routeName string) string {
 }
 
 func (m *routeManager) UrlFor(routeName string, params map[string]interface{}) string {
-	path := m.PathFor(routeName)
+	return m.UrlForPath(m.PathFor(routeName), params)
+}
+
+func (m *routeManager) UrlForPath(path string, params map[string]interface{}) string {
 	paths := strings.Split(path, "/")
 	parts := make([]string, 0)
 	data := make(map[string]string)
