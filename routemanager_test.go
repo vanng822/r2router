@@ -22,6 +22,15 @@ func TestUrlFor(t *testing.T) {
 	})
 }
 
+func TestUrlForBaseUrl(t *testing.T) {
+	m := NewRouteManager()
+	m.SetBaseUrl("http://localhost/")
+	m.Add("some::for", "/some/:key/for")
+
+	assert.Equal(t, m.UrlFor("some::for", map[string][]string{"key": []string{"100"}}), "http://localhost/some/100/for")
+}
+
+
 func TestAddNoneUnique(t *testing.T) {
 	m := NewRouteManager()
 	m.Add("same::for", "/some/:key/for")

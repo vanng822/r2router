@@ -8,6 +8,8 @@ import (
 
 // For managing route and getting url
 type RouteManager interface {
+	// For setting baseurl if one needs full url
+	SetBaseUrl(baseUrl string)
 	// Register a route and return the path
 	// This can be good for adding and register handler at the same time
 	// router.Get(rm.Add("user", "/user/:id"), handler)
@@ -25,7 +27,8 @@ type RouteManager interface {
 }
 
 type routeManager struct {
-	routes map[string]string
+	baseUrl string
+	routes  map[string]string
 }
 
 func NewRouteManager() RouteManager {
@@ -33,6 +36,10 @@ func NewRouteManager() RouteManager {
 	m.routes = make(map[string]string)
 
 	return m
+}
+
+func (m *routeManager) SetBaseUrl(baseUrl string) {
+	m.baseUrl = strings.TrimRight(baseUrl, "/")
 }
 
 func (m *routeManager) Add(routeName, path string) string {
@@ -82,9 +89,11 @@ func (m *routeManager) UrlForPath(path string, params map[string][]string) strin
 
 		panic(fmt.Sprintf("Param %s missing in provided data or has multiple values", key))
 	}
-
+	var query string
 	if len(urlParams) > 0 {
-		return fmt.Sprintf("%s?%s", strings.Join(parts, "/"), urlParams.Encode())
+		query = fmt.Sprintf("?%s", urlParams.Encode())
 	}
-	return strings.Join(parts, "/")
+	// if path without / in the beginning will not work but probably no one does
+	return fmt.Sprintf("%s%s%s", m.baseUrl, strings.Join(parts, "/"), query)
+	
 }
