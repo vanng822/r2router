@@ -2,8 +2,8 @@ package r2router
 
 import (
 	"fmt"
-	"strings"
 	"net/url"
+	"strings"
 )
 
 // For managing route and getting url
@@ -28,7 +28,7 @@ type routeManager struct {
 func NewRouteManager() RouteManager {
 	m := &routeManager{}
 	m.routes = make(map[string]string)
-	
+
 	return m
 }
 
@@ -55,14 +55,14 @@ func (m *routeManager) UrlFor(routeName string, params map[string][]string) stri
 func (m *routeManager) UrlForPath(path string, params map[string][]string) string {
 	paths := strings.Split(path, "/")
 	parts := make([]string, 0)
-	
+
 	urlParams := url.Values{}
 	for k, v := range params {
 		for _, vv := range v {
 			urlParams.Add(k, vv)
 		}
 	}
-	
+
 	for _, p := range paths {
 		if p == "" || p[:1] != ":" {
 			parts = append(parts, p)
@@ -70,17 +70,16 @@ func (m *routeManager) UrlForPath(path string, params map[string][]string) strin
 		}
 		key := p[1:]
 		if val, exist := params[key]; exist {
-			if len(val) != 1 {
-				panic(fmt.Sprintf("Param %s has multiple value", key))
+			if len(val) == 1 {
+				parts = append(parts, val[0])
+				urlParams.Del(key)
+				continue
 			}
-			parts = append(parts, val[0])
-			urlParams.Del(key)
-			continue
 		}
 
-		panic(fmt.Sprintf("Param %s missing in provided data", key))
+		panic(fmt.Sprintf("Param %s missing in provided data or has multiple values", key))
 	}
-	
+
 	if len(urlParams) > 0 {
 		return fmt.Sprintf("%s?%s", strings.Join(parts, "/"), urlParams.Encode())
 	}
