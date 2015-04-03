@@ -12,9 +12,10 @@ func main() {
 	router := r2router.NewRouter()
 	router.Group("/repos/:owner/:repo", func(r *r2router.GroupRouter) {
 		r.Get("/stats/contributors", func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
-			data := map[string]string{}
-			data["owner"] = p.Get("owner")
-			data["repo"] = p.Get("repo")
+			data := r2router.M{
+				"owner": p.Get("owner"),
+				"repo":  p.Get("repo"),
+			}
 			renderer.JSON(w, http.StatusOK, data)
 		})
 
