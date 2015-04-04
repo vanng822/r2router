@@ -1,4 +1,7 @@
 ## r2router
+
+UNDER DEVELOPMENT, API MAY QUICKLY CHANGE!
+
 A simple router which supports named parameter. Idea for API or backend without any static content. This package contains 2 router types. Router is for pure routing and Seefor supports middleware stacks.
 
 Middlewares are divided into 2 groups, one runs before routing and one runs after routing. Before middleware is thought for serving static, logging, recovery from panic and so on. After middleware is thought for pre-processing data before executing endpoint handler. One can do this by using AppSet method on Params. This mean that Before middlewares are always executed, except when a middleware cancels and does not call next(), meanwhile After middlewares are only call if a route is hit. Each After middleware also has a chance to response and stop calling next().
