@@ -213,22 +213,36 @@ func TestSeeforTimer(t *testing.T) {
 func TestMiddlewareBefore(t *testing.T) {
 	router := NewSeeforRouter()
 
+	// never call
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
 
-	router.Before(BeforeFunc(func(w http.ResponseWriter, r *http.Request, next func()) {
+	// wrapping which always call next handler
+	router.Before(WrapBeforeHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello"))
-	}))
-	
+	})))
+
+	// customized which choose not to call next handler
+	router.Before(func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(" World"))
+		})
+	})
+	// never call
+	router.Before(func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Ignore"))
+		})
+	})
+
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
-	
 	res, err := http.Get(ts.URL + "/user/keys/testing")
 	assert.Nil(t, err)
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusOK)
-	assert.Equal(t, string(content), "Hello")
+	assert.Equal(t, string(content), "Hello World")
 }

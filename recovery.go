@@ -12,40 +12,53 @@ type Logger interface {
 	Printf(format string, v ...interface{})
 }
 
-type Recovery struct {
+type RecoveryOptions struct {
 	Logger     Logger
 	StackAll   bool
 	StackSize  int
 	PrintStack bool
 }
 
-func (rec *Recovery) ServeHTTP(w http.ResponseWriter, req *http.Request, next func()) {
+type Recovery struct {
+	options *RecoveryOptions
+	handler http.Handler
+}
+
+func (rec *Recovery) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 
-			stack := make([]byte, rec.StackSize)
-			stack = stack[:runtime.Stack(stack, rec.StackAll)]
+			stack := make([]byte, rec.options.StackSize)
+			stack = stack[:runtime.Stack(stack, rec.options.StackAll)]
 			format := "PANIC: %s\n%s"
-			rec.Logger.Printf(format, err, stack)
+			rec.options.Logger.Printf(format, err, stack)
 
-			if rec.PrintStack {
+			if rec.options.PrintStack {
 				fmt.Fprintf(w, format, err, stack)
 			} else {
 				w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
 			}
 		}
 	}()
-
-	next()
+	rec.handler.ServeHTTP(w, req)
 }
 
-func NewRecovery() *Recovery {
-	rec := &Recovery{
+func NewRecoveryOptions() *RecoveryOptions {
+	return &RecoveryOptions{
 		Logger:     log.New(os.Stdout, "[seefor] ", 0),
 		StackAll:   false,
 		StackSize:  1024 * 8,
 		PrintStack: false,
 	}
-	return rec
+}
+
+func NewRecovery(options *RecoveryOptions) Before {
+	return func(handler http.Handler) http.Handler {
+		rec := &Recovery{
+			options: options,
+			handler: handler,
+		}
+		return rec
+	}
 }
