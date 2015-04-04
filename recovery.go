@@ -21,7 +21,7 @@ type RecoveryOptions struct {
 
 type Recovery struct {
 	options *RecoveryOptions
-	handler http.Handler
+	next http.Handler
 }
 
 func (rec *Recovery) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -41,7 +41,7 @@ func (rec *Recovery) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}()
-	rec.handler.ServeHTTP(w, req)
+	rec.next.ServeHTTP(w, req)
 }
 
 func NewRecoveryOptions() *RecoveryOptions {
@@ -57,10 +57,10 @@ func NewRecovery(options *RecoveryOptions) Before {
 	if options == nil {
 		options = NewRecoveryOptions()
 	}
-	return func(handler http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
 		rec := &Recovery{
 			options: options,
-			handler: handler,
+			next: next,
 		}
 		return rec
 	}

@@ -86,9 +86,8 @@ func TestSeeforMiddleware(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string)))
 	})
-	router.After(AfterFunc(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Test Middleware")
-		next()
 	}))
 
 	ts := httptest.NewServer(router)
@@ -108,10 +107,9 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
-	router.After(AfterFunc(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
+	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Test Middleware")
 		p.AppSet("hello", "World")
-		next()
 	}))
 
 	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
@@ -135,9 +133,11 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id") + p.AppGet("middleware").(string) + p.AppGet("hello").(string)))
 	})
-	router.After(AfterFunc(func(w http.ResponseWriter, r *http.Request, p Params, next func()) {
-		w.Write([]byte("Hello"))
-	}))
+	router.After(func(next Handler) Handler {
+		return HandlerFunc(func(w http.ResponseWriter, r *http.Request, p Params) {
+			w.Write([]byte("Hello"))
+		})
+	})
 
 	router.After(Wrap(func(w http.ResponseWriter, r *http.Request, p Params) {
 		p.AppSet("middleware", "Middleware")

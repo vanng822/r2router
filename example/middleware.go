@@ -20,9 +20,8 @@ func main() {
 		})
 	})
 	// set label "say"
-	seefor.After(r2router.AfterFunc(func(w http.ResponseWriter, r *http.Request, p r2router.Params, next func()) {
+	seefor.After(r2router.Wrap(func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
 		p.AppSet("say", "Hello")
-		next()
 	}))
 	seefor.Get("/hello/:name", func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
 		w.Write([]byte(fmt.Sprintf("%s %s!", p.AppGet("say").(string), p.Get("name"))))

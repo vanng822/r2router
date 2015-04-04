@@ -13,25 +13,14 @@ type M map[string]interface{}
 // Before defines middleware interface.
 // Before middlewares are for handling request before routing.
 // Before middlewares are executed in the order they were inserted.
-// A middleware can choose to response to a request and not call the handler
-type Before func(handler http.Handler) http.Handler
+// A middleware can choose to response to a request and not call next handler
+type Before func(next http.Handler) http.Handler
 
 // After defines how a middleware should look like.
 // After middlewares are for handling request after routing.
 // After middlewares are executed in the order they were inserted.
-// A middleware can choose to response to a request and not call next
-// for continue with the next middleware/handler
-type After interface {
-	ServeHTTP(w http.ResponseWriter, req *http.Request, params Params, next func())
-}
-
-// AfterFunc for wrapping a function that have this signature to use as
-// After middleware
-type AfterFunc func(w http.ResponseWriter, req *http.Request, params Params, next func())
-
-func (a AfterFunc) ServeHTTP(w http.ResponseWriter, req *http.Request, params Params, next func()) {
-	a(w, req, params, next)
-}
+// A middleware can choose to response to a request and not call next handler
+type After func(next Handler) Handler
 
 // Seefor is a subtype of Router.
 // It supports a simple middleware layers.
@@ -59,13 +48,15 @@ func NewSeeforRouter() *Seefor {
 // This is a override of Router.ServeHTTP for handling middlewares
 func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	started := time.Now()
-	c4.handleBeforeMiddlewares(w, req, func() {
+	c4.handleBeforeMiddlewares(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		beforeEnd := time.Now()
 		if root, exist := c4.roots[req.Method]; exist {
 			handler, params, route := root.match(req.URL.Path)
 			if handler != nil {
 				if c4.timer != nil {
-					c4.timeit(route, started, beforeEnd, handler, w, req, params)
+					after := time.Now()
+					c4.handleAfterMiddlewares(handler, w, req, params)
+					c4.timer.Get(route).Accumulate(started, beforeEnd, after, time.Now())
 				} else {
 					c4.handleAfterMiddlewares(handler, w, req, params)
 				}
@@ -73,48 +64,21 @@ func (c4 *Seefor) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 		c4.Router.handleMissing(w, req)
-	})
+	}), w, req)
 }
 
-func (c4 *Seefor) handleBeforeMiddlewares(w http.ResponseWriter, req *http.Request, nextHandler func()) {
-	var handler http.Handler
-	handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		nextHandler()
-	})
-
+func (c4 *Seefor) handleBeforeMiddlewares(handler http.Handler, w http.ResponseWriter, req *http.Request) {
 	for i := len(c4.befores) - 1; i >= 0; i-- {
 		handler = c4.befores[i](handler)
 	}
-
 	handler.ServeHTTP(w, req)
 }
 
-func (c4 *Seefor) timeit(route string, started, beforeEnd time.Time, handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
-	after := time.Now()
-	c4.handleAfterMiddlewares(handler, w, req, params)
-	c4.timer.Get(route).Accumulate(started, beforeEnd, after, time.Now())
-}
-
 func (c4 *Seefor) handleAfterMiddlewares(handler Handler, w http.ResponseWriter, req *http.Request, params Params) {
-	var next func()
-
-	max := len(c4.afters)
-	if max == 0 {
-		handler.ServeHTTP(w, req, params)
-		return
+	for i := len(c4.afters) - 1; i >= 0; i-- {
+		handler = c4.afters[i](handler)
 	}
-
-	counter := 0
-	next = func() {
-		if counter >= max {
-			handler.ServeHTTP(w, req, params)
-			return
-		}
-		middleware := c4.afters[counter]
-		counter += 1
-		middleware.ServeHTTP(w, req, params, next)
-	}
-	next()
+	handler.ServeHTTP(w, req, params)
 }
 
 // Before is for adding middleware for running before routing
@@ -122,7 +86,7 @@ func (c4 *Seefor) Before(middleware ...Before) {
 	c4.befores = append(c4.befores, middleware...)
 }
 
-// After is for adding middleware for running after
+// After is for adding middleware for running after routing
 func (c4 *Seefor) After(middleware ...After) {
 	c4.afters = append(c4.afters, middleware...)
 }
@@ -131,30 +95,34 @@ func (c4 *Seefor) After(middleware ...After) {
 // Be aware that it will not be able to stop execution propagation
 // That is it will continue to execute the next middleware/handler
 func Wrap(handler HandlerFunc) After {
-	return AfterFunc(func(w http.ResponseWriter, req *http.Request, params Params, next func()) {
-		handler(w, req, params)
-		next()
-	})
+	return func(next Handler) Handler {
+		return HandlerFunc(func(w http.ResponseWriter, req *http.Request, params Params) {
+			handler(w, req, params)
+			next.ServeHTTP(w, req, params)
+		})
+	}
 }
 
 // WrapHandler for wrapping a http.Handler to After middleware.
 // Be aware that it will not be able to stop execution propagation
 // That is it will continue to execute the next middleware/handler
 func WrapHandler(handler http.Handler) After {
-	return AfterFunc(func(w http.ResponseWriter, req *http.Request, _ Params, next func()) {
-		handler.ServeHTTP(w, req)
-		next()
-	})
+	return func(next Handler) Handler {
+		return HandlerFunc(func(w http.ResponseWriter, req *http.Request, params Params) {
+			handler.ServeHTTP(w, req)
+			next.ServeHTTP(w, req, params)
+		})
+	}
 }
 
 // WrapBeforeHandler for wrapping a http.Handler to Before middleware.
 // Be aware that it will not be able to stop execution propagation
 // That is it will continue to execute the next middleware/handler
 func WrapBeforeHandler(handler http.Handler) Before {
-	return func(their http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			handler.ServeHTTP(w, req)
-			their.ServeHTTP(w, req)
+			next.ServeHTTP(w, req)
 		})
 	}
 }
