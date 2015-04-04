@@ -54,6 +54,9 @@ func NewRecoveryOptions() *RecoveryOptions {
 }
 
 func NewRecovery(options *RecoveryOptions) Before {
+	if options == nil {
+		options = NewRecoveryOptions()
+	}
 	return func(handler http.Handler) http.Handler {
 		rec := &Recovery{
 			options: options,

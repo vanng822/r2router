@@ -11,7 +11,7 @@ import (
 
 func TestSeeforRecovery(t *testing.T) {
 	router := NewSeeforRouter()
-	router.Before(NewRecovery(NewRecoveryOptions()))
+	router.Before(NewRecovery(nil))
 
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		panic("This shouldn't crash Seefor")
