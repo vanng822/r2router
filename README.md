@@ -104,12 +104,14 @@ func main() {
 }
 ```	
 
-## Middlewares
+## Middlewares & Recommended packages
 
-Panic recovery
+### Middlewares
 
-https://github.com/vanng822/recovery
+Panic recovery https://github.com/vanng822/recovery
 
-Basic auth
+Basic auth https://github.com/goji/httpauth
 
-https://github.com/goji/httpauth
+### Generic packages
+
+Rendering https://github.com/unrolled/render
