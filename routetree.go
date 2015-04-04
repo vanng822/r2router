@@ -189,3 +189,37 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 		return n.handler, nil, "/"
 	}
 }
+
+func (n *rootNode) dump() string {
+	var dumNode func(node *routeNode, ident int) string
+	
+	dumNode = func(node *routeNode, ident int) string {
+		s := ""
+		identing := ""
+		for i := 0; i < ident; i++ {
+			identing += " "
+		}
+		s += identing + " |\n"
+		identing += "  "
+		if node.paramNode {
+			s += identing + "-- :" + node.paramName
+		} else {
+			s += identing + "-- " + node.path
+		}
+		if node.handler != nil {
+			s += fmt.Sprintf(" (<%p>)", node.handler)
+		}
+		s += "\n"
+		for _, c := range node.cchildren {
+			s += dumNode(c, ident+1)
+		}
+		
+		for _, c := range node.children {
+			s += dumNode(c, ident+1)
+		}
+		
+		return s
+	}
+	
+	return dumNode(n.root, 0)
+}

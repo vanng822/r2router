@@ -26,7 +26,7 @@ func TestRouter(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
-	
+
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
@@ -80,28 +80,25 @@ func TestRouter(t *testing.T) {
 	assert.Contains(t, res.Header.Get("Allow"), "DELETE")
 }
 
-
 func TestRouterMethodNotAllowed(t *testing.T) {
 	router := NewRouter()
-	
+
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
-	
+
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
-	
 	client := &http.Client{}
-	
+
 	req, err := http.NewRequest("DELETE", ts.URL+"/user/keys/testing", nil)
 	assert.Nil(t, err)
-	
+
 	res, err := client.Do(req)
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusMethodNotAllowed)
 }
-
 
 func TestRouterMethodNotAllowedCustomized(t *testing.T) {
 	router := NewRouter()
@@ -112,42 +109,39 @@ func TestRouterMethodNotAllowedCustomized(t *testing.T) {
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
-	
+
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
-	
 	client := &http.Client{}
-	
+
 	req, err := http.NewRequest("DELETE", ts.URL+"/user/keys/testing", nil)
 	assert.Nil(t, err)
-	
+
 	res, err := client.Do(req)
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, content, []byte("Hello"))
 	assert.Equal(t, res.StatusCode, http.StatusMethodNotAllowed)
-	
-}
 
+}
 
 func TestRouterCustomizedOptions(t *testing.T) {
 	router := NewRouter()
-	
+
 	router.AddHandler("OPTIONS", "/users/", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Header().Add("Allow", "GET, POST")
 	})
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()
-	client := &http.Client{}	
+	client := &http.Client{}
 	// custom
 	req, _ := http.NewRequest("OPTIONS", ts.URL+"/users/", nil)
 	res2, _ := client.Do(req)
 	res2.Body.Close()
 	assert.Equal(t, res2.Header.Get("Allow"), "GET, POST")
 }
-
 
 func TestRouterNotFound(t *testing.T) {
 	router := NewRouter()
@@ -167,7 +161,7 @@ func TestRouterNotFoundCustomized(t *testing.T) {
 	}
 	ts := httptest.NewServer(router)
 	defer ts.Close()
-	
+
 	res, err := http.Get(ts.URL + "/user/keys/testing")
 	assert.Nil(t, err)
 	content, err := ioutil.ReadAll(res.Body)
@@ -176,35 +170,41 @@ func TestRouterNotFoundCustomized(t *testing.T) {
 	assert.Equal(t, content, []byte("Boo"))
 }
 
-
 func TestRouterFirstNodeParamNode(t *testing.T) {
 	router := NewRouter()
-	
+
 	router.Get("/:page", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/:page," + p.Get("page")))
 	})
-	
+
 	router.Get("/user/keys/:id", func(w http.ResponseWriter, r *http.Request, p Params) {
 		w.Write([]byte("GET:/user/keys/:id," + p.Get("id")))
 	})
-	
+
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
-	
 	client := &http.Client{}
-	
+
 	req, err := http.NewRequest("GET", ts.URL+"/testing", nil)
 	assert.Nil(t, err)
 	res, err := client.Do(req)
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, content, []byte("GET:/:page,testing"))
-	
+
 	req, err = http.NewRequest("GET", ts.URL+"/user/keys/testing", nil)
 	assert.Nil(t, err)
 	res, err = client.Do(req)
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, content, []byte("GET:/user/keys/:id,testing"))
+}
+
+func TestRouterDump(t *testing.T) {
+	router := NewRouter()
+	router.Get("/:page", func(w http.ResponseWriter, r *http.Request, p Params) {
+		w.Write([]byte("GET:/:page," + p.Get("page")))
+	})
+	assert.Contains(t, router.Dump(), " |\n  -- \n  |\n   -- :page (<")
 }
