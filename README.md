@@ -112,6 +112,12 @@ Panic recovery https://github.com/vanng822/recovery
 
 Basic auth https://github.com/goji/httpauth
 
+CORS https://github.com/rs/cors
+
+Quick security wins https://github.com/unrolled/secure
+
+HMAC authentication https://github.com/auroratechnologies/vangoh
+
 ### Generic packages
 
 Rendering https://github.com/unrolled/render
