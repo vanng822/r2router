@@ -186,10 +186,7 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 		}
 		return route.handler, params, route.routePath
 	} else {
-		if n.handler != nil {
-			return n.handler, params, "/"
-		}
-		return nil, nil, ""
+		return n.handler, params, "/"
 	}
 }
 
