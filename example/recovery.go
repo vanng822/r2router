@@ -8,9 +8,9 @@ import (
 
 func main() {
     seefor := r2router.NewSeeforRouter()
-    options := recovery.NewOptions()
-    options.PrintStack = true
-    seefor.Before(recovery.Middleware(options))
+    rec := recovery.NewRecovery()
+    rec.PrintStack = true
+    seefor.Before(rec.Handler)
 	seefor.Before(r2router.WrapBeforeHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("Middleware panic")
 	})))
