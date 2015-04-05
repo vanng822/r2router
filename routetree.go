@@ -147,14 +147,14 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 
 func (n *rootNode) match(path string) (Handler, Params, string) {
 	path = strings.Trim(path, "/")
+	params := &params_{}
+	params.appData = make(map[string]interface{})
+	params.requestParams = make(map[string]string)
 	if path != "" {
 		// can be better by getting one at the time
 		var matched bool
 		var token string
 		route := n.root
-		params := &params_{}
-		params.appData = make(map[string]interface{})
-		params.requestParams = make(map[string]string)
 		for {
 			// comparing constant paths
 			for _, c := range route.cchildren {
@@ -186,13 +186,16 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 		}
 		return route.handler, params, route.routePath
 	} else {
-		return n.handler, nil, "/"
+		if n.handler != nil {
+			return n.handler, params, "/"
+		}
+		return nil, nil, ""
 	}
 }
 
 func (n *rootNode) dump() string {
 	var dumNode func(node *routeNode, ident int) string
-	
+
 	dumNode = func(node *routeNode, ident int) string {
 		s := ""
 		identing := ""
@@ -213,13 +216,13 @@ func (n *rootNode) dump() string {
 		for _, c := range node.cchildren {
 			s += dumNode(c, ident+1)
 		}
-		
+
 		for _, c := range node.children {
 			s += dumNode(c, ident+1)
 		}
-		
+
 		return s
 	}
-	
+
 	return dumNode(n.root, 0)
 }

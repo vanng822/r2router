@@ -67,8 +67,17 @@ func TestMatchIndex(t *testing.T) {
 	r.addRoute("/", &httpTestHandler{})
 	h, p, route := r.match("/")
 	assert.NotNil(t, h)
-	assert.Nil(t, p)
+	assert.NotNil(t, p)
 	assert.Equal(t, route, "/")
+}
+
+func TestMatchIndexNil(t *testing.T) {
+	r := newRouteTree()
+	r.addRoute("/testing", &httpTestHandler{})
+	h, p, route := r.match("/")
+	assert.Nil(t, h)
+	assert.Nil(t, p)
+	assert.Equal(t, route, "")
 }
 
 func TestMatchFalse(t *testing.T) {
