@@ -142,8 +142,8 @@ func (r *Router) Group(path string, fn func(r *GroupRouter)) {
 
 func (r *Router) Dump() string {
 	s := ""
-	for _, root := range r.roots {
-		s += root.dump()
+	for method, root := range r.roots {
+		s += method + "\n" +root.dump()
 	}
 	
 	return s
