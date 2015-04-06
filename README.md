@@ -110,6 +110,8 @@ func main() {
 
 Panic recovery https://github.com/vanng822/recovery
 
+Access log https://github.com/vanng822/accesslog
+
 Basic auth https://github.com/goji/httpauth
 
 CORS https://github.com/rs/cors
