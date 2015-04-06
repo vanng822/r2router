@@ -44,7 +44,7 @@ func TestRouterGroup(t *testing.T) {
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Nil(t, err)
-	assert.Equal(t, content, []byte("GET:/user/keys/:id,testing"))
+	assert.Equal(t, string(content), "GET:/user/keys/:id,testing")
 
 	// Get all
 	res, err = http.Get(ts.URL + "/user/keys")
@@ -53,7 +53,7 @@ func TestRouterGroup(t *testing.T) {
 	res.Body.Close()
 
 	assert.Nil(t, err)
-	assert.Equal(t, content, []byte("GET:/user/keys"))
+	assert.Equal(t, string(content), "GET:/user/keys")
 
 	// post
 	res, err = http.Post(ts.URL+"/user/keys", "", nil)
@@ -62,7 +62,7 @@ func TestRouterGroup(t *testing.T) {
 	res.Body.Close()
 
 	assert.Nil(t, err)
-	assert.Equal(t, content, []byte("POST:/user/keys"))
+	assert.Equal(t, string(content), "POST:/user/keys")
 
 	// put
 	client := &http.Client{}
@@ -70,14 +70,14 @@ func TestRouterGroup(t *testing.T) {
 	res, err = client.Do(req)
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	assert.Equal(t, content, []byte("PUT:/user/keys/:id,testing"))
+	assert.Equal(t, string(content), "PUT:/user/keys/:id,testing")
 
 	// delete
 	req, err = http.NewRequest("DELETE", ts.URL+"/user/keys/testing", nil)
 	res, err = client.Do(req)
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	assert.Equal(t, content, []byte("DELETE:/user/keys/:id,testing"))
+	assert.Equal(t, string(content), "DELETE:/user/keys/:id,testing")
 
 	req, err = http.NewRequest("HEAD", ts.URL+"/user/keys/testing", nil)
 	res, err = client.Do(req)

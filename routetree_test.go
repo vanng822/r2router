@@ -22,16 +22,6 @@ func TestAddRouteDiffParamName(t *testing.T) {
 	})
 }
 
-func TestSwapNodes(t *testing.T) {
-	r := newRouteTree()
-	r.addRoute("/users/:user/events", &httpTestHandler{})
-	r.addRoute("/users/list/events", &httpTestHandler{})
-	assert.Equal(t, len(r.root.children[0].children), 1)
-	assert.Equal(t, r.root.cchildren[0].path, "users/list/events")
-	assert.True(t, r.root.children[0].children[0].paramNode)
-	assert.Equal(t, r.root.children[0].children[0].paramName, "user")
-}
-
 func TestAddRouteBrokenParamName(t *testing.T) {
 	r := newRouteTree()
 	assert.Panics(t, func() {

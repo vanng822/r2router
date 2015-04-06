@@ -6,19 +6,18 @@ import (
 )
 
 type routeNode struct {
-	paramNode bool
-	paramName string
-	path      string
-	cchildren []*routeNode
-	children  []*routeNode
-	handler   Handler
-	routePath string
+	paramNode  bool
+	paramName  string
+	path       string
+	children   []*routeNode
+	paramChild *routeNode
+	handler    Handler
+	routePath  string
 }
 
 func newRouteNode() *routeNode {
 	r := &routeNode{}
 	r.children = make([]*routeNode, 0)
-	r.cchildren = make([]*routeNode, 0)
 	return r
 }
 
@@ -27,19 +26,12 @@ func newRouteNode() *routeNode {
 // we already have a similar node registered
 func (n *routeNode) findChild(nn *routeNode) *routeNode {
 	for _, c := range n.children {
-		if c.paramNode && nn.paramNode {
-			// both are paramNode
-			return c
-		} else if c.path == nn.path {
+		if c.path == nn.path {
 			// same node
 			return c
 		}
 	}
 	return nil
-}
-
-func (n *routeNode) swapChild(i, j int) {
-	n.children[i], n.children[j] = n.children[j], n.children[i]
 }
 
 // insertChild registers given node in the route node tree
@@ -48,32 +40,21 @@ func (n *routeNode) swapChild(i, j int) {
 // newly registered or the old one
 func (n *routeNode) insertChild(nn *routeNode) *routeNode {
 	if child := n.findChild(nn); child != nil {
-		if child.paramNode && nn.paramNode {
-			// only allow one param child, unique param name
-			if child.paramName != nn.paramName {
-				panic("Param name must be same for")
-			}
-		}
-
 		return child
 	}
 
-	n.children = append(n.children, nn)
-	if len(n.children) > 1 {
-		if n.children[len(n.children)-2].paramNode {
-			n.swapChild(len(n.children)-2, len(n.children)-1)
+	if n.paramChild != nil && nn.paramNode {
+		// only allow one param child, unique param name
+		if n.paramChild.paramName != nn.paramName {
+			panic("Param name must be same for")
 		}
+		return n.paramChild
 	}
-	return nn
-}
-
-func (n *routeNode) insertCChild(nn *routeNode) *routeNode {
-	for _, child := range n.cchildren {
-		if child.path == nn.path {
-			return child
-		}
+	if nn.paramNode {
+		n.paramChild = nn
+	} else {
+		n.children = append(n.children, nn)
 	}
-	n.cchildren = append(n.cchildren, nn)
 	return nn
 }
 
@@ -103,17 +84,12 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 		parent := n.root
 		var token string
 		for {
-			child := newRouteNode()
-
-			if !strings.Contains(path, ":") {
-				child.path = path
-				child.routePath = fmt.Sprintf("%s/%s", parent.routePath, path)
-				parent = parent.insertCChild(child)
+			if path == "" {
 				break
 			}
-
+			child := newRouteNode()
 			token, path = nextPath(path)
-
+			//fmt.Println(token, path)
 			if token[:1] == ":" {
 				// param type
 				child.paramName = strings.TrimSpace(token[1:])
@@ -127,9 +103,6 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 			// will be parent for the next path token
 			child.routePath = fmt.Sprintf("%s/%s", parent.routePath, token)
 			parent = parent.insertChild(child)
-			if path == "" {
-				break
-			}
 		}
 		// adding handler
 		if parent.handler != nil {
@@ -156,11 +129,8 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 		var token string
 		route := n.root
 		for {
-			// comparing constant paths
-			for _, c := range route.cchildren {
-				if c.path == path {
-					return c.handler, params, c.routePath
-				}
+			if path == "" {
+				break
 			}
 			token, path = nextPath(path)
 			matched = false
@@ -170,18 +140,16 @@ func (n *rootNode) match(path string) (Handler, Params, string) {
 					matched = true
 					break
 				}
-				if c.paramNode {
-					route = c
-					matched = true
-					params.requestParams[c.paramName] = token
-					break
-				}
 			}
+
 			if !matched {
+				if route.paramChild != nil {
+					route = route.paramChild
+					matched = true
+					params.requestParams[route.paramName] = token
+					continue
+				}
 				return nil, nil, ""
-			}
-			if path == "" {
-				break
 			}
 		}
 		return route.handler, params, route.routePath
@@ -210,14 +178,13 @@ func (n *rootNode) dump() string {
 			s += fmt.Sprintf(" (<%p>)", node.handler)
 		}
 		s += "\n"
-		for _, c := range node.cchildren {
-			s += dumNode(c, ident+1)
-		}
 
 		for _, c := range node.children {
 			s += dumNode(c, ident+1)
 		}
-
+		if node.paramChild != nil {
+			s += dumNode(node.paramChild, ident+1)
+		}
 		return s
 	}
 

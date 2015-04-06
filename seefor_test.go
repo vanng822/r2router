@@ -36,7 +36,7 @@ func TestSeeforInherits(t *testing.T) {
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Nil(t, err)
-	assert.Equal(t, content, []byte("GET:/user/keys/:id,testing"))
+	assert.Equal(t, string(content), "GET:/user/keys/:id,testing")
 
 	// Get all
 	res, err = http.Get(ts.URL + "/user/keys")
@@ -45,7 +45,7 @@ func TestSeeforInherits(t *testing.T) {
 	res.Body.Close()
 
 	assert.Nil(t, err)
-	assert.Equal(t, content, []byte("GET:/user/keys"))
+	assert.Equal(t, string(content), "GET:/user/keys")
 
 	// post
 	res, err = http.Post(ts.URL+"/user/keys", "", nil)
@@ -54,7 +54,7 @@ func TestSeeforInherits(t *testing.T) {
 	res.Body.Close()
 
 	assert.Nil(t, err)
-	assert.Equal(t, content, []byte("POST:/user/keys"))
+	assert.Equal(t, string(content), "POST:/user/keys")
 
 	// put
 	client := &http.Client{}
@@ -62,14 +62,14 @@ func TestSeeforInherits(t *testing.T) {
 	res, err = client.Do(req)
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	assert.Equal(t, content, []byte("PUT:/user/keys/:id,testing"))
+	assert.Equal(t, string(content), "PUT:/user/keys/:id,testing")
 
 	// delete
 	req, err = http.NewRequest("DELETE", ts.URL+"/user/keys/testing", nil)
 	res, err = client.Do(req)
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	assert.Equal(t, content, []byte("DELETE:/user/keys/:id,testing"))
+	assert.Equal(t, string(content), "DELETE:/user/keys/:id,testing")
 
 	// options
 	req, err = http.NewRequest("OPTIONS", ts.URL+"/user/keys/testing", nil)
@@ -98,7 +98,7 @@ func TestSeeforMiddleware(t *testing.T) {
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Nil(t, err)
-	assert.Equal(t, content, []byte("GET:/user/keys/:id,testingTest Middleware"))
+	assert.Equal(t, string(content), "GET:/user/keys/:id,testingTest Middleware")
 }
 
 func TestSeeforMultiMiddleware(t *testing.T) {
@@ -124,7 +124,7 @@ func TestSeeforMultiMiddleware(t *testing.T) {
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Nil(t, err)
-	assert.Equal(t, content, []byte("GET:/user/keys/:id,testingMiddlewareWorld"))
+	assert.Equal(t, string(content), "GET:/user/keys/:id,testingMiddlewareWorld")
 }
 
 func TestSeeforMiddlewareStop(t *testing.T) {
@@ -151,7 +151,7 @@ func TestSeeforMiddlewareStop(t *testing.T) {
 	content, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	assert.Equal(t, res.StatusCode, http.StatusOK)
-	assert.Equal(t, content, []byte("Hello"))
+	assert.Equal(t, string(content), "Hello")
 }
 
 func TestSeeforMiddlewareContinue(t *testing.T) {

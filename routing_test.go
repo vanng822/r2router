@@ -1,7 +1,7 @@
 package r2router
 
 import (
-	//"fmt"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -321,8 +321,10 @@ func TestRouting(t *testing.T) {
 		assert.Nil(t, err)
 		content, err := ioutil.ReadAll(res.Body)
 		res.Body.Close()
-		assert.Equal(t, content, []byte(method+":"+url))
+		assert.Equal(t, string(content), method+":"+url)
 	}
+	//fmt.Println(router.Dump())
+	fmt.Println("")
 }
 
 func BenchmarkRoutingGithub3(b *testing.B) {
