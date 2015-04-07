@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// Shortcut for map[string][]string
+type P map[string][]string
+
 // For managing route and getting url
 type RouteManager interface {
 	// For setting baseurl if one needs full url

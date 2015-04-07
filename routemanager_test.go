@@ -15,7 +15,7 @@ func TestUrlFor(t *testing.T) {
 
 	assert.Equal(t, m.UrlFor("some::for", map[string][]string{"key": []string{"thing"}}), "/some/thing/for")
 
-	assert.Equal(t, m.UrlFor("some::for", map[string][]string{"key": []string{"thing"}, "your": []string{"kitty"}}), "/some/thing/for?your=kitty")
+	assert.Equal(t, m.UrlFor("some::for", P{"key": []string{"thing"}, "your": []string{"kitty"}}), "/some/thing/for?your=kitty")
 
 	assert.Panics(t, func() {
 		m.UrlFor("some::for", map[string][]string{})
