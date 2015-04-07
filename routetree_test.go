@@ -44,7 +44,7 @@ func TestMatchTrue(t *testing.T) {
 	h, p, route := r.match("/users/vanng822/events")
 	assert.NotNil(t, h)
 	exectedP := &params_{}
-	exectedP.appData = make(map[string]interface{})
+	exectedP.appData = make(map[interface{}]interface{})
 	exectedP.requestParams = make(map[string]string)
 	exectedP.requestParams["user"] = "vanng822"
 	assert.Equal(t, p, exectedP)

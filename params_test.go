@@ -11,7 +11,7 @@ func TestParamsAppData(t *testing.T) {
 		Age int
 	}
 	p := params_{}
-	p.appData = make(map[string]interface{})
+	p.appData = make(map[interface{}]interface{})
 	p.appData["hello"] = "World"
 	p.AppSet("user", &User{"CPO", 56})
 	

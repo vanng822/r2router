@@ -121,7 +121,7 @@ func (n *rootNode) addRoute(path string, handler Handler) {
 func (n *rootNode) match(path string) (Handler, Params, string) {
 	path = strings.Trim(path, "/")
 	params := &params_{}
-	params.appData = make(map[string]interface{})
+	params.appData = make(map[interface{}]interface{})
 	params.requestParams = make(map[string]string)
 	if path != "" {
 		// can be better by getting one at the time

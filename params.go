@@ -15,18 +15,18 @@ type Params interface {
 	// for given key
 	Has(key string) bool
 	// AppSet is for application to set own data
-	AppSet(key string, val interface{})
+	AppSet(key interface{}, val interface{})
 	// AppGet returns the value from AppSet
-	AppGet(key string) interface{}
+	AppGet(key interface{}) interface{}
 	// AppHas is for checking if the application
 	// has set data for given key
-	AppHas(key string) bool
+	AppHas(key interface{}) bool
 }
 
 // Holding value for named parameters
 type params_ struct {
 	requestParams map[string]string
-	appData       map[string]interface{}
+	appData       map[interface{}]interface{}
 }
 
 func (p *params_) Get(key string) string {
@@ -38,15 +38,15 @@ func (p *params_) Has(key string) bool {
 	return exists
 }
 
-func (p *params_) AppSet(key string, val interface{}) {
+func (p *params_) AppSet(key interface{}, val interface{}) {
 	p.appData[key] = val
 }
 
-func (p *params_) AppGet(key string) interface{} {
+func (p *params_) AppGet(key interface{}) interface{} {
 	return p.appData[key]
 }
 
-func (p *params_) AppHas(key string) bool {
+func (p *params_) AppHas(key interface{}) bool {
 	_, exists := p.appData[key]
 	return exists
 }
