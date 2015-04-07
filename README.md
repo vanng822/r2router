@@ -161,6 +161,8 @@ Quick security wins https://github.com/unrolled/secure
 
 HMAC authentication https://github.com/auroratechnologies/vangoh
 
+Static content https://github.com/hypebeast/gojistatic
+
 ### Generic packages
 
 Rendering https://github.com/unrolled/render
