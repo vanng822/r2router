@@ -32,7 +32,7 @@ func main() {
 	}))
 
 	seefor.Get("/hello/:name", func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
-		w.Write([]byte(fmt.Sprintf("%s %s!\n%s", p.AppGet("say").(string), p.Get("name"), p.AppGet("goodbye"))))
+		fmt.Fprintf(w, "%s %s!\n%s", p.AppGet("say").(string), p.Get("name"), p.AppGet("goodbye"))
 	})
 
 	timer := seefor.UseTimer(nil)

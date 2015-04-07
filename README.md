@@ -85,19 +85,27 @@ import (
 func main() {
 	seefor := r2router.NewSeeforRouter()
 	// measure time middleware
-	seefor.Before(func(handler http.Handler) http.Handler {
+	seefor.Before(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			handler.ServeHTTP(w, r)
+			next.ServeHTTP(w, r)
 			log.Printf("took: %s", time.Now().Sub(start))
 		})
 	})
 	// set label "say"
+	seefor.After(func(next r2router.Handler) r2router.Handler {
+		return r2router.HandlerFunc(func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
+			p.AppSet("say", "Hello")
+			next.ServeHTTP(w, r, p)
+		})
+	})
+
 	seefor.After(r2router.Wrap(func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
-		p.AppSet("say", "Hello")
+		p.AppSet("goodbye", "Bye bye")
 	}))
+
 	seefor.Get("/hello/:name", func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
-		w.Write([]byte(fmt.Sprintf("%s %s!", p.AppGet("say").(string), p.Get("name"))))
+		fmt.Fprintf(w, "%s %s!\n%s", p.AppGet("say").(string), p.Get("name"), p.AppGet("goodbye"))
 	})
 	
 	http.ListenAndServe(":8080", seefor)
