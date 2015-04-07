@@ -175,7 +175,7 @@ func (n *rootNode) dump() string {
 			s += identing + "-- " + node.path
 		}
 		if node.handler != nil {
-			s += fmt.Sprintf(" (<%p>)", node.handler)
+			s += fmt.Sprintf(" (<%p>)", &node.handler)
 		}
 		s += "\n"
 
