@@ -48,7 +48,7 @@ import (
 )
 
 // Wrapper for http.HandlerFunc, similar can be done for http.Handler
-func RouteHandleFunc(next http.HandlerFunc) r2router.HandlerFunc {
+func RouteHandlerFunc(next http.HandlerFunc) r2router.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, _ r2router.Params) {
 		next(w, r)
 	}
@@ -56,7 +56,7 @@ func RouteHandleFunc(next http.HandlerFunc) r2router.HandlerFunc {
 
 func main() {
 	seefor := r2router.NewSeeforRouter()
-	seefor.Get("/hello/world", RouteHandleFunc(func(w http.ResponseWriter, r *http.Request) {
+	seefor.Get("/hello/world", RouteHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Hello world!")
 	}))
 	http.ListenAndServe("127.0.0.1:8080", seefor)
