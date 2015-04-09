@@ -166,3 +166,9 @@ Static content https://github.com/hypebeast/gojistatic
 ### Generic packages
 
 Rendering https://github.com/unrolled/render
+
+Session https://github.com/gorilla/sessions
+
+HTTP request data binding & validation https://github.com/mholt/binding
+
+
