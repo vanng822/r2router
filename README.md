@@ -112,6 +112,22 @@ func main() {
 }
 ```	
 
+If you want add middlewares for a specific route then you should create your own wrapper. This way you will have full control over your middlewares.
+You could do something like bellow
+
+```go
+
+func RouteMiddleware(next r2router.HandlerFunc) r2router.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
+		// do some stuffs
+		next(w, r, p)
+		// can do some more stuffs
+	}
+}
+```
+
+
+
 ### Route manager
 
 ```go	
