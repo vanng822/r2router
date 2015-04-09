@@ -183,8 +183,6 @@ import (
 	"net/http"
 )
 
-type MM map[string][]string
-
 func main() {
 	seefor := r2router.NewSeeforRouter()
 	rmanager := r2router.NewRouteManager()
@@ -197,8 +195,8 @@ func main() {
 	rmanager.Add("redirect::name", "/redirect/:name")
 
 	seefor.Get(rmanager.PathFor("redirect::name"), func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
-		// Building url for routename "hello:name" and redirect
-		http.Redirect(w, r, rmanager.UrlFor("hello::name", MM{"name": []string{p.Get("name")}}), http.StatusFound)
+		// Building url for routename "hello::name" and redirect
+		http.Redirect(w, r, rmanager.UrlFor("hello::name", r2router.P{"name": []string{p.Get("name")}}), http.StatusFound)
 	})
 
 	http.ListenAndServe("127.0.0.1:8080", seefor)
