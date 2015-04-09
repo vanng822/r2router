@@ -34,6 +34,34 @@ func main() {
 ```
 	
 Demo: http://premailer.isgoodness.com/
+
+If your routes don't contain named params and you have existing http.HandlerFunc then you can wrap as bellow
+
+```go
+
+package main
+
+import (
+	"fmt"
+	"github.com/vanng822/r2router"
+	"net/http"
+)
+
+// Wrapper for http.HandlerFunc, similar can be done for http.Handler
+func RouteHandleFunc(next http.HandlerFunc) r2router.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, _ r2router.Params) {
+		next(w, r)
+	}
+}
+
+func main() {
+	seefor := r2router.NewSeeforRouter()
+	seefor.Get("/hello/world", RouteHandleFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "Hello world!")
+	}))
+	http.ListenAndServe("127.0.0.1:8080", seefor)
+}
+```
 	
 ### Measuring endpoint performance using Timer
 
@@ -112,17 +140,33 @@ func main() {
 }
 ```	
 
-If you want add middlewares for a specific route then you should create your own wrapper. This way you will have full control over your middlewares.
+If you want to add middlewares for a specific route then you should create your own wrapper. This way you will have full control over your middlewares.
 You could do something like bellow
 
 ```go
 
+package main
+
+import (
+	"fmt"
+	"github.com/vanng822/r2router"
+	"net/http"
+)
+
+// Your own route middle wrapper
 func RouteMiddleware(next r2router.HandlerFunc) r2router.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
-		// do some stuffs
+		p.AppSet("say", "Hello")
 		next(w, r, p)
-		// can do some more stuffs
 	}
+}
+
+func main() {
+	seefor := r2router.NewSeeforRouter()
+	seefor.Get("/hello/:name", RouteMiddleware(func(w http.ResponseWriter, r *http.Request, p r2router.Params) {
+		fmt.Fprintf(w, "%s %s!", p.AppGet("say").(string), p.Get("name"))
+	}))
+	http.ListenAndServe("127.0.0.1:8080", seefor)
 }
 ```
 
