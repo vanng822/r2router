@@ -128,10 +128,15 @@ func WrapBeforeHandler(handler http.Handler) Before {
 }
 
 // UseTimer set timer for meaturing endpoint performance.
-// If timer is nil then a new timer will be created.
+// If timer is nil and no timer exists
+// then a new timer will be created 
+// else existing timer will be returned.
 // You can serve statistics internal using Timer as handler
 func (c4 *Seefor) UseTimer(timer *Timer) *Timer {
 	if timer == nil {
+		if c4.timer != nil {
+			return c4.timer
+		}
 		timer = NewTimer()
 	}
 	c4.timer = timer

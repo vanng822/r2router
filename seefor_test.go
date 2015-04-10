@@ -188,6 +188,9 @@ func TestSeeforTimer(t *testing.T) {
 	})
 
 	timer := router.UseTimer(nil)
+	timer2 := router.UseTimer(nil)
+	assert.Exactly(t, timer, timer2)
+	assert.True(t, assert.ObjectsAreEqual(timer, timer2))
 
 	ts := httptest.NewServer(router)
 	defer ts.Close()
