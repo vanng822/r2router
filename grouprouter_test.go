@@ -84,12 +84,12 @@ func TestRouterGroup(t *testing.T) {
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	// http seems not sending content
-	assert.Equal(t, res.ContentLength, len([]byte("HEAD:/user/keys/:id,testing")))
+	assert.Equal(t, int(res.ContentLength), len([]byte("HEAD:/user/keys/:id,testing")))
 	
 	req, err = http.NewRequest("PATCH", ts.URL+"/user/keys/testing", nil)
 	res, err = client.Do(req)
 	content, err = ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	// http seems not sending content
-	assert.Equal(t, res.ContentLength, len([]byte("PATCH:/user/keys/:id,testing")))
+	assert.Equal(t, int(res.ContentLength), len([]byte("PATCH:/user/keys/:id,testing")))
 }

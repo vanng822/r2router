@@ -26,7 +26,7 @@ func TestCounter(t *testing.T) {
 	}
 	w.Wait()
 	assert.NotNil(t, c.Count)
-	assert.Equal(t, c.Count, 1000)
+	assert.Equal(t, c.Count, int64(1000))
 }
 
 func TestTimer(t *testing.T) {
