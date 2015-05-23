@@ -11,7 +11,8 @@ One interesting feature this package has is measurement of endpoint performance.
 There is also a route manager for registering all your routes. This can use for setting up endpoints and also use for building urls.
 
 [![GoDoc](https://godoc.org/github.com/vanng822/r2router?status.svg)](https://godoc.org/github.com/vanng822/r2router)
-
+[![Build Status](https://travis-ci.org/vanng822/r2router.svg?branch=master)](https://travis-ci.org/vanng822/r2router)
+[![Go Walker](http://gowalker.org/api/v1/badge)](https://gowalker.org/github.com/vanng822/r2router) [![](http://gocover.io/_badge/github.com/vanng822/r2router)](http://gocover.io/github.com/vanng822/r2router)
 
 ## Example
 
